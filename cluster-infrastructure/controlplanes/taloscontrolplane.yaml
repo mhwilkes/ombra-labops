@@ -48,11 +48,6 @@ spec:
             value:
               cloud-provider: external
           - op: add
-            path: /cluster/network
-            value:
-              cni:
-                name: none  # Disable default CNI, let ArgoCD install Cilium
-          - op: add
             path: /cluster/externalCloudProvider
             value:
               enabled: true
