@@ -1,0 +1,19 @@
+# Example clusterctl.yaml configuration for your environment
+# For Linux/macOS: Place this at ~/.cluster-api/clusterctl.yaml
+# For Windows: Place this at %USERPROFILE%\.cluster-api\clusterctl.yaml (e.g., C:\Users\Mike\.cluster-api\clusterctl.yaml)
+
+providers:
+  - name: "talos"
+    url: "https://github.com/siderolabs/cluster-api-bootstrap-provider-talos/releases/latest/bootstrap-components.yaml"
+    type: "BootstrapProvider"
+  - name: "talos"
+    url: "https://github.com/siderolabs/cluster-api-control-plane-provider-talos/releases/latest/control-plane-components.yaml"
+    type: "ControlPlaneProvider"
+  - name: "proxmox"
+    url: "https://github.com/ionos-cloud/cluster-api-provider-proxmox/releases/latest/infrastructure-components.yaml"
+    type: "InfrastructureProvider"
+
+# Proxmox connection information
+PROXMOX_URL: "https://192.168.20.60:8006"
+PROXMOX_TOKEN: 'YOUR_TOKEN_NAME'  # e.g. 'capmox@pve!capi'
+PROXMOX_SECRET: "YOUR_TOKEN_SECRET"

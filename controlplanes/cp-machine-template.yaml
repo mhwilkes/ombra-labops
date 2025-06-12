@@ -1,0 +1,38 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxMachineTemplate
+metadata:
+  name: control-plane-template
+  namespace: default
+spec:
+  template:
+    spec:        
+      disks:        
+        bootVolume:
+          disk: scsi0
+          sizeGb: 30
+      format: qcow2
+      full: true
+      allowedNodes: [pve-r640-01, pve-r740xd-01, pve-r740xd-02]
+      memoryMiB: 4096
+      network:        
+        default:
+          bridge: vmbr1
+          model: virtio
+          vlan: 55
+      numCores: 4
+      numSockets: 1
+      sourceNode: pve-r640-01
+      templateID: 100        
+      checks:
+        skipCloudInitStatus: true
+        skipQemuGuestAgent: true
+      metadataSettings:
+        providerIDInjection: true
+
+
+
+
+
+
+
+
