@@ -1,6 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: cni-migration
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
+    targetRevision: HEAD
+    path: gitops/apps/infrastructure/cni-migration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Replace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: infrastructure
   namespace: argocd
 spec:
