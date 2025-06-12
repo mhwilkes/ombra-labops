@@ -15,7 +15,7 @@ spec:
           # Service configuration
           service:
             type: LoadBalancer
-            loadBalancerIP: 192.168.55.201  # Update with your desired IP
+            loadBalancerIP: 192.168.55.205
             externalTrafficPolicy: Local
             annotations:
               # Preserve source IP
