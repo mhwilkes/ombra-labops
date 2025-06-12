@@ -4,9 +4,9 @@ metadata:
   name: workloads
   namespace: argocd
 spec:
-  project: default
+  project: default  
   source:
-    repoURL: https://github.com/your-username/ombra-labops.git  # Update with your actual repo URL
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
     targetRevision: HEAD
     path: gitops/apps/workloads
   destination:

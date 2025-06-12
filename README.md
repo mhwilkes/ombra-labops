@@ -76,7 +76,7 @@ ombra-labops/
 1. **Deploy ArgoCD and infrastructure**:
 
    ```powershell
-   ./scripts/setup-gitops.ps1 -RepoUrl "https://github.com/your-username/ombra-labops.git"
+   ./scripts/setup-gitops.ps1 -RepoUrl "https://github.com/mhwilkes/ombra-labops.git"
    ```
 
 2. **Access ArgoCD UI**:

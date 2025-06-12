@@ -2,7 +2,7 @@
 # This script sets up ArgoCD and deploys the infrastructure components
 
 param(
-    [string]$RepoUrl = "https://github.com/your-username/ombra-labops.git",
+    [string]$RepoUrl = "https://github.com/mhwilkes/ombra-labops.git",
     [string]$KubeconfigPath = ".\ombra-kubeconfig",
     [switch]$SkipArgoInstall,
     [switch]$DryRun
@@ -57,10 +57,10 @@ if (!$SkipArgoInstall) {
 }
 
 # Update App of Apps with correct repo URL
-if ($RepoUrl -ne "https://github.com/your-username/ombra-labops.git") {
+if ($RepoUrl -ne "https://github.com/mhwilkes/ombra-labops.git") {
     Write-Host "🔄 Updating repository URL in configurations..." -ForegroundColor Yellow
     $appOfAppsContent = Get-Content .\gitops\bootstrap\app-of-apps.yaml -Raw
-    $appOfAppsContent = $appOfAppsContent -replace "https://github.com/your-username/ombra-labops.git", $RepoUrl
+    $appOfAppsContent = $appOfAppsContent -replace "https://github.com/mhwilkes/ombra-labops.git", $RepoUrl
     $appOfAppsContent | Set-Content .\gitops\bootstrap\app-of-apps.yaml
 }
 
