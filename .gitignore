@@ -1,0 +1,27 @@
+# Kubernetes and Talos configuration files (contain sensitive data)
+*-kubeconfig*
+*-talosconfig*
+
+# Binaries and executables
+clusterctl*.exe
+
+# Other sensitive files
+*.key
+*.crt
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.log

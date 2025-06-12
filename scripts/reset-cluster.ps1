@@ -4,6 +4,15 @@
 # Set error action preference
 $ErrorActionPreference = "Continue"
 
+# Get the script's directory and calculate the repository root
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = Split-Path -Parent $ScriptDir
+$ClusterInfraPath = Join-Path $RepoRoot "cluster-infrastructure"
+
+Write-Host "Script directory: $ScriptDir" -ForegroundColor Gray
+Write-Host "Repository root: $RepoRoot" -ForegroundColor Gray
+Write-Host "Cluster infrastructure path: $ClusterInfraPath" -ForegroundColor Gray
+
 function Write-Step {
     param (
         [Parameter(Mandatory=$true)]
@@ -43,13 +52,13 @@ function Invoke-ClusterCommand {
 Write-Step "STEP 1: Uninstalling all cluster resources"
 
 # Delete in reverse order of dependencies
-Invoke-ClusterCommand -Command "kubectl delete -f workers/machinedeploy-worker.yaml --ignore-not-found" -Description "Deleting worker machine deployment"
-Invoke-ClusterCommand -Command "kubectl delete -f workers/talosconfig-workers.yaml --ignore-not-found" -Description "Deleting worker Talos config"
-Invoke-ClusterCommand -Command "kubectl delete -f workers/proxmoxmachinetemplate-worker.yaml --ignore-not-found" -Description "Deleting worker machine template"
-Invoke-ClusterCommand -Command "kubectl delete -f controlplanes/taloscontrolplane.yaml --ignore-not-found" -Description "Deleting Talos control plane"
-Invoke-ClusterCommand -Command "kubectl delete -f controlplanes/cp-machine-template.yaml --ignore-not-found" -Description "Deleting control plane machine template"
-Invoke-ClusterCommand -Command "kubectl delete -f controlplanes/cluster.yaml --ignore-not-found" -Description "Deleting cluster"
-Invoke-ClusterCommand -Command "kubectl delete -f controlplanes/proxmox.yaml --ignore-not-found" -Description "Deleting Proxmox provider"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/workers/machinedeploy-worker.yaml`" --ignore-not-found" -Description "Deleting worker machine deployment"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/workers/talosconfig-workers.yaml`" --ignore-not-found" -Description "Deleting worker Talos config"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/workers/proxmoxmachinetemplate-worker.yaml`" --ignore-not-found" -Description "Deleting worker machine template"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/controlplanes/taloscontrolplane.yaml`" --ignore-not-found" -Description "Deleting Talos control plane"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/controlplanes/cp-machine-template.yaml`" --ignore-not-found" -Description "Deleting control plane machine template"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/controlplanes/cluster.yaml`" --ignore-not-found" -Description "Deleting cluster"
+Invoke-ClusterCommand -Command "kubectl delete -f `"$ClusterInfraPath/controlplanes/proxmox.yaml`" --ignore-not-found" -Description "Deleting Proxmox provider"
 
 # Wait for resources to be deleted
 Write-Step "Waiting for resources to be fully deleted"
@@ -60,13 +69,13 @@ Invoke-ClusterCommand -Command "kubectl get clusters,machines,proxmoxmachines,ta
 Write-Step "STEP 2: Reinstalling cluster resources"
 
 # Apply in order of dependencies
-Invoke-ClusterCommand -Command "kubectl apply -f controlplanes/proxmox.yaml" -Description "Applying Proxmox provider"
-Invoke-ClusterCommand -Command "kubectl apply -f controlplanes/cluster.yaml" -Description "Applying cluster configuration"
-Invoke-ClusterCommand -Command "kubectl apply -f controlplanes/cp-machine-template.yaml" -Description "Applying control plane machine template"
-Invoke-ClusterCommand -Command "kubectl apply -f controlplanes/taloscontrolplane.yaml" -Description "Applying Talos control plane"
-Invoke-ClusterCommand -Command "kubectl apply -f workers/proxmoxmachinetemplate-worker.yaml" -Description "Applying worker machine template"
-Invoke-ClusterCommand -Command "kubectl apply -f workers/talosconfig-workers.yaml" -Description "Applying worker Talos config"
-Invoke-ClusterCommand -Command "kubectl apply -f workers/machinedeploy-worker.yaml" -Description "Applying worker machine deployment"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/controlplanes/proxmox.yaml`"" -Description "Applying Proxmox provider"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/controlplanes/cluster.yaml`"" -Description "Applying cluster configuration"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/controlplanes/cp-machine-template.yaml`"" -Description "Applying control plane machine template"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/controlplanes/taloscontrolplane.yaml`"" -Description "Applying Talos control plane"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/workers/proxmoxmachinetemplate-worker.yaml`"" -Description "Applying worker machine template"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/workers/talosconfig-workers.yaml`"" -Description "Applying worker Talos config"
+Invoke-ClusterCommand -Command "kubectl apply -f `"$ClusterInfraPath/workers/machinedeploy-worker.yaml`"" -Description "Applying worker machine deployment"
 
 # STEP 3: Check status
 Write-Step "STEP 3: Checking status of deployed resources"

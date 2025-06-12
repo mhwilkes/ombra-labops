@@ -1,6 +1,31 @@
-# Ombra Kubernetes Cluster on Proxmox with Talos
+# Ombra Kubernetes Cluster with GitOps
 
-This repository contains the Cluster API (CAPI) configuration for deploying a Talos Linux-based Kubernetes cluster named "ombra" on Proxmox infrastructure.
+This repository provides a complete solution for deploying and managing a production-ready Kubernetes cluster using modern cloud-native technologies:
+
+- **🏗️ Infrastructure**: Cluster API (CAPI) with Talos Linux on Proxmox VE
+- **🚀 GitOps**: ArgoCD for continuous deployment and application management
+- **🔧 Automation**: PowerShell scripts for lifecycle management
+
+## Repository Structure
+
+```
+ombra-labops/
+├── README.md                    # This file - project overview
+├── cluster-infrastructure/      # 🏗️ Cluster creation and management
+│   ├── controlplanes/          # Control plane node configurations
+│   ├── workers/                # Worker node configurations
+│   └── README.md               # Infrastructure setup guide
+├── gitops/                     # 🚀 GitOps and application deployment
+│   └── README.md               # ArgoCD setup and usage
+├── scripts/                    # 🔧 Automation and management scripts
+│   ├── get-cluster-configs.ps1 # Extract cluster configurations
+│   ├── reset-cluster.ps1       # Clean and redeploy cluster
+│   ├── setup-gitops.ps1        # Install and configure ArgoCD
+│   └── README.md               # Scripts documentation
+└── docs/                       # 📚 Comprehensive documentation
+    ├── instructions.md          # Detailed technical guide
+    └── README.md               # Documentation overview
+```
 
 ## Infrastructure Details
 
@@ -22,93 +47,98 @@ This repository contains the Cluster API (CAPI) configuration for deploying a Ta
 2. Proxmox API token with sufficient permissions
 3. Management Kubernetes cluster with Cluster API components installed
 
-## Setup Instructions
+## Quick Start
 
-1. Create a Proxmox API token for CAPI to use:
-   ```bash
-   # On the Proxmox host
-   pveum user add capmox@pve
-   pveum aclmod / -user capmox@pve -role PVEVMAdmin
-   pveum user token add capmox@pve capi -privsep
+### Phase 1: 🏗️ Deploy the Cluster
+
+1. **Prerequisites**: Set up Proxmox infrastructure and management cluster
+   ```powershell
+   # See cluster-infrastructure/README.md for detailed setup
    ```
 
-2. Configure the clusterctl configuration:
-   ```bash
-   # Create or update ~/.cluster-api/clusterctl.yaml
-   # Use the provided clusterctl-config-example.yaml as a reference
+2. **Deploy cluster**:
+   ```powershell
+   # Option 1: Use the reset script (recommended)
+   ./scripts/reset-cluster.ps1
+   
+   # Option 2: Manual deployment
+   kubectl apply -f cluster-infrastructure/controlplanes/
+   kubectl apply -f cluster-infrastructure/workers/
    ```
 
-3. Initialize Cluster API on your management cluster:
-   ```bash
-   clusterctl init --infrastructure proxmox --ipam in-cluster --control-plane talos --bootstrap talos
+3. **Get cluster access**:
+   ```powershell
+   ./scripts/get-cluster-configs.ps1
    ```
 
-4. Create the Talos template in Proxmox:
-   - Download the latest Talos ISO from https://github.com/siderolabs/talos/releases
-   - Create a template VM in Proxmox with at least 2GB RAM and 20GB disk
-   - Attach the Talos ISO
-   - Enable qemu-guest-agent in the VM options
-   - Record the template ID and update the YAML files if necessary
+### Phase 2: 🚀 Setup GitOps with ArgoCD
 
-5. Deploy the cluster:
-   ```bash
-   # Apply the Proxmox cluster configuration
-   kubectl apply -f controlplanes/proxmox.yaml
-   
-   # Apply the cluster definition
-   kubectl apply -f controlplanes/cluster.yaml
-   
-   # Apply the control plane machine template
-   kubectl apply -f controlplanes/cp-machine-template.yaml
-   
-   # Apply the talos control plane configuration
-   kubectl apply -f controlplanes/taloscontrolplane.yaml
-   
-   # Apply worker configurations
-   kubectl apply -f workers/proxmoxmachinetemplate-worker.yaml
-   kubectl apply -f workers/talosconfig-workers.yaml
-   kubectl apply -f workers/machinedeploy-worker.yaml
+1. **Deploy ArgoCD and infrastructure**:
+
+   ```powershell
+   ./scripts/setup-gitops.ps1 -RepoUrl "https://github.com/your-username/ombra-labops.git"
    ```
 
-6. Get the kubeconfig for the new cluster:
-   ```bash
-   # Once the control plane is ready, you can get the kubeconfig
-   # First, get the talosconfig file
-   clusterctl get talosconfig ombra > ombra-talosconfig
-   
-   # Then get the kubeconfig for the cluster
-   talosctl --talosconfig ombra-talosconfig kubeconfig --nodes 192.168.55.220 -e 192.168.55.220
+2. **Access ArgoCD UI**:
+
+   ```powershell
+   kubectl port-forward svc/argocd-server -n argocd 8080:443
    ```
 
-## Resource Specifications
+   Navigate to <https://localhost:8080>
 
-### Control Plane Nodes
-- 4 CPU cores
-- 4GB RAM
-- 30GB disk
-- Ceph storage partition (10GB)
+3. **Get ArgoCD admin password**:
 
-### Worker Nodes
-- 4 CPU cores
-- 8GB RAM
-- 40GB disk
-- Ceph storage partition (20GB)
+   ```powershell
+   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+   ```
 
-## Cluster Network
+4. **Verify deployments**:
+   - CNI (Cilium) with Hubble UI
+   - NGINX Ingress Controller
+   - cert-manager for SSL certificates
+   - Sealed Secrets for secret management
 
-- Control plane VIP: 192.168.55.220
-- Node IPs: 192.168.55.210-192.168.55.219
-- Gateway: 192.168.55.1
-- Subnet: 192.168.55.0/24
-- DNS: 192.168.20.20
+## Architecture Overview
 
-## Ceph Storage Configuration
+### Infrastructure Components
 
-Once your cluster is deployed, you can proceed with configuring Ceph storage using the pre-allocated partitions at `/var/lib/ceph` on both control plane and worker nodes.
+- **Proxmox VE**: Virtualization platform hosting the cluster
+- **Talos Linux**: Immutable, secure OS designed for Kubernetes
+- **Cluster API**: Declarative cluster lifecycle management
+- **VLAN 55**: Dedicated network (192.168.55.0/24) for cluster nodes
 
-## Notes
+### Cluster Specifications
 
-- The control plane uses the faster 10G network (vmbr1)
-- Workers are distributed across different Proxmox nodes for high availability
-- The Talos version is set to v1.33.0 (latest as of configuration)
-- QEMU guest agent is enabled for better VM management
+**Control Plane Nodes**:
+
+- Count: 3 nodes for high availability
+- Resources: 4 CPU, 4GB RAM, 30GB disk
+- Network: 10G LACP (vmbr1) for performance
+- VIP: 192.168.55.220
+
+**Worker Nodes**:
+
+- Count: 3 nodes (scalable)
+- Resources: 4 CPU, 8GB RAM, 40GB disk
+- Storage: Additional 20GB partition for Ceph
+
+## Documentation
+
+For detailed information, see:
+
+- **[📁 cluster-infrastructure/README.md](./cluster-infrastructure/README.md)**: Complete cluster setup guide
+- **[📁 gitops/README.md](./gitops/README.md)**: ArgoCD and GitOps workflows
+- **[📁 scripts/README.md](./scripts/README.md)**: Automation scripts documentation
+- **[📁 docs/instructions.md](./docs/instructions.md)**: Comprehensive technical deep-dive
+
+## Next Steps
+
+1. **First time setup**: Follow the cluster-infrastructure README
+2. **Deploy GitOps**: Run the setup-gitops.ps1 script to deploy ArgoCD and infrastructure
+3. **Scale and manage**: Use the provided scripts for ongoing operations
+4. **Learn more**: Read the comprehensive documentation in `docs/`
+
+---
+
+*This project demonstrates modern Kubernetes cluster management using GitOps principles and cloud-native technologies.*

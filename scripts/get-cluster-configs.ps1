@@ -6,11 +6,24 @@ param(
     [string]$ClusterName = "ombra",
     
     [Parameter(Mandatory=$false)]
-    [string]$OutputDir = "."
+    [string]$OutputDir
 )
 
 # Set error action preference
 $ErrorActionPreference = "Stop"
+
+# Get the script's directory and calculate the repository root
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = Split-Path -Parent $ScriptDir
+
+# Set default output directory to repository root if not specified
+if (-not $OutputDir) {
+    $OutputDir = $RepoRoot
+}
+
+Write-Host "Script directory: $ScriptDir" -ForegroundColor Gray
+Write-Host "Repository root: $RepoRoot" -ForegroundColor Gray
+Write-Host "Output directory: $OutputDir" -ForegroundColor Gray
 
 function Write-Step {
     param (
