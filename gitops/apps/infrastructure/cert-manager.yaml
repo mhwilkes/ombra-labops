@@ -51,18 +51,11 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
-        
-        # Prometheus monitoring
+          # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
-          enabled: true
+          enabled: false
           servicemonitor:
-            enabled: true
-            prometheusInstance: default
-            targetPort: 9402
-            path: /metrics
-            interval: 60s
-            scrapeTimeout: 30s
-            labels: {}
+            enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
