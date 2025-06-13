@@ -40,19 +40,25 @@ spec:
               bittorrent:
                 port: *bittorrentPort
                 protocol: TCP
-                targetPort: *bittorrentPort
+                targetPort: *bittorrentPort        
         ingress:
           app:
             enabled: true
             className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-staging
             hosts:
-              - host: qbittorrent.local.example.com
+              - host: qbittorrent.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
                     service:
                       identifier: app
                       port: http
+            tls:
+              - secretName: qbittorrent-tls
+                hosts:
+                  - qbittorrent.michaelwilkes.dev
         persistence:
           config:
             enabled: true

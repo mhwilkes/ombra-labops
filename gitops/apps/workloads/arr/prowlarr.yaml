@@ -22,7 +22,7 @@ spec:
                   TZ: America/New_York
                   PROWLARR__INSTANCE_NAME: Prowlarr
                   PROWLARR__PORT: &port 9696
-                  PROWLARR__APPLICATION_URL: "https://prowlarr.local.example.com"
+                  PROWLARR__APPLICATION_URL: "https://prowlarr.michaelwilkes.dev"
                   PROWLARR__LOG_LEVEL: info
                   PROWLARR__API_KEY: "your-api-key-here"
                 resources:
@@ -36,19 +36,25 @@ spec:
             controller: prowlarr
             ports:
               http:
-                port: *port
+                port: *port        
         ingress:
           app:
             enabled: true
             className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-staging
             hosts:
-              - host: prowlarr.local.example.com
+              - host: prowlarr.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
                     service:
                       identifier: app
-                      port: http        
+                      port: http
+            tls:
+              - secretName: prowlarr-tls
+                hosts:
+                  - prowlarr.michaelwilkes.dev
         persistence:
           config:
             enabled: true

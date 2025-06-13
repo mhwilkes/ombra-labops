@@ -22,7 +22,7 @@ spec:
                   TZ: America/New_York
                   SONARR__INSTANCE_NAME: Sonarr
                   SONARR__PORT: &port 8989
-                  SONARR__APPLICATION_URL: "https://sonarr.local.example.com"
+                  SONARR__APPLICATION_URL: "https://sonarr.michaelwilkes.dev"
                   SONARR__LOG_LEVEL: info
                   SONARR__API_KEY: "your-api-key-here"
                 resources:
@@ -36,19 +36,25 @@ spec:
             controller: sonarr
             ports:
               http:
-                port: *port
+                port: *port        
         ingress:
           app:
             enabled: true
             className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-staging
             hosts:
-              - host: sonarr.local.example.com
+              - host: sonarr.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
                     service:
                       identifier: app
                       port: http
+            tls:
+              - secretName: sonarr-tls
+                hosts:
+                  - sonarr.michaelwilkes.dev
         persistence:
           config:
             enabled: true

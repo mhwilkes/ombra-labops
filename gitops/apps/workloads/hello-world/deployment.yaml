@@ -138,10 +138,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - hello.ombra.local  # Update with your domain
+    - hello.michaelwilkes.dev
     secretName: hello-world-tls
   rules:
-  - host: hello.ombra.local  # Update with your domain
+  - host: hello.michaelwilkes.dev
     http:
       paths:
       - path: /
