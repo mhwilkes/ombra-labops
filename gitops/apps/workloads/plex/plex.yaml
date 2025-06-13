@@ -53,7 +53,7 @@ spec:
         persistence:
           config:
             enabled: true
-            type: hostPath
+            type: hostPath            
             hostPath: /opt/plex/config
             hostPathType: DirectoryOrCreate
             globalMounts:
@@ -64,7 +64,8 @@ spec:
             hostPath: /opt/plex/media
             hostPathType: DirectoryOrCreate
             globalMounts:
-              - path: /media          transcode:
+              - path: /media
+          transcode:
             enabled: true
             type: emptyDir
             globalMounts:

@@ -68,7 +68,8 @@ spec:
             enabled: true
             type: hostPath
             hostPath: /opt/plex/media/movies
-            hostPathType: DirectoryOrCreate            globalMounts:
+            hostPathType: DirectoryOrCreate            
+            globalMounts:
               - path: /media
   destination:
     server: https://kubernetes.default.svc
