@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qbittorrent
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://bjw-s.github.io/helm-charts
+    chart: app-template
+    targetRevision: 3.5.1
+    helm:
+      values: |
+        controllers:
+          qbittorrent:
+            containers:
+              app:
+                image:
+                  repository: ghcr.io/onedr0p/qbittorrent
+                  tag: 5.0.1@sha256:33f1b858182525a2e19d7bb73c3f1c12b23b5f97ea7cf6977a9b4c952987c5b6
+                env:
+                  TZ: America/New_York
+                  QBITTORRENT__PORT: &port 8080
+                  QBITTORRENT__BT_PORT: &bittorrentPort 6881
+                  QBT_Application__MemoryWorkingSetLimit: 8000
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 250Mi
+                  limits:
+                    memory: 8Gi
+        service:
+          app:
+            controller: qbittorrent
+            type: LoadBalancer
+            loadBalancerIP: 192.168.55.211
+            ports:
+              http:
+                port: *port
+              bittorrent:
+                port: *bittorrentPort
+                protocol: TCP
+                targetPort: *bittorrentPort
+        ingress:
+          app:
+            enabled: true
+            className: nginx
+            hosts:
+              - host: qbittorrent.local.example.com
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+        persistence:
+          config:
+            enabled: true
+            type: hostPath
+            hostPath: /opt/qbittorrent/config
+            hostPathType: DirectoryOrCreate
+            globalMounts:
+              - path: /config
+          downloads:
+            enabled: true
+            type: hostPath
+            hostPath: /opt/downloads
+            hostPathType: DirectoryOrCreate
+            globalMounts:
+              - path: /downloads  destination:
+    server: https://kubernetes.default.svc
+    namespace: downloads
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

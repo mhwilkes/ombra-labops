@@ -1,0 +1,80 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plex
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://bjw-s.github.io/helm-charts
+    chart: app-template
+    targetRevision: 3.5.1
+    helm:
+      values: |
+        controllers:
+          plex:
+            containers:
+              app:
+                image:
+                  repository: ghcr.io/onedr0p/plex
+                  tag: 1.40.4.8679-424562606@sha256:6caeca24f3b08206a94a6a9c102e2c0c14d46d5a9163241716559e8c83f53ff8
+                env:
+                  TZ: America/New_York
+                  PLEX_CLAIM: "your-plex-claim-token"
+                  PLEX_UID: 1000
+                  PLEX_GID: 1000
+                  ADVERTISE_IP: "http://192.168.55.210:32400/"
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 2Gi
+                  limits:
+                    memory: 8Gi
+        service:
+          app:
+            controller: plex
+            type: LoadBalancer
+            loadBalancerIP: 192.168.55.210
+            ports:
+              http:
+                port: 32400
+        ingress:
+          app:
+            enabled: true
+            className: nginx
+            hosts:
+              - host: plex.local.example.com
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+        persistence:
+          config:
+            enabled: true
+            type: hostPath
+            hostPath: /opt/plex/config
+            hostPathType: DirectoryOrCreate
+            globalMounts:
+              - path: /config
+          media:
+            enabled: true
+            type: hostPath
+            hostPath: /opt/plex/media
+            hostPathType: DirectoryOrCreate
+            globalMounts:
+              - path: /media
+          transcode:
+            enabled: true
+            type: emptyDir
+            globalMounts:
+              - path: /transcode  destination:
+    server: https://kubernetes.default.svc
+    namespace: plex
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

@@ -1,0 +1,154 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://bjw-s.github.io/helm-charts
+    chart: app-template
+    targetRevision: 3.5.1
+    helm:
+      values: |
+        controllers:
+          homepage:
+            containers:
+              app:
+                image:
+                  repository: ghcr.io/gethomepage/homepage
+                  tag: v0.9.10
+                env:
+                  TZ: America/New_York
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 50Mi
+                  limits:
+                    memory: 500Mi
+        service:
+          app:
+            controller: homepage
+            ports:
+              http:
+                port: 3000
+        ingress:
+          app:
+            enabled: true
+            className: nginx
+            hosts:
+              - host: homepage.local.example.com
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: homepage-tls
+                hosts:
+                  - homepage.local.example.com
+        persistence:
+          config:
+            enabled: true
+            type: configMap
+            name: homepage-config
+            globalMounts:
+              - path: /app/config
+        configMaps:
+          config:
+            enabled: true
+            data:
+              settings.yaml: |
+                ---
+                # For configuration options and examples, please see:
+                # https://gethomepage.dev/latest/configs/settings
+                
+                title: Lab Dashboard
+                favicon: https://github.com/gethomepage.png
+                
+                theme: dark
+                color: slate
+                
+                headerStyle: clean
+                layout:
+                  Media:
+                    style: row
+                    columns: 4
+                  Downloads:
+                    style: row
+                    columns: 2
+                  Infrastructure:
+                    style: row
+                    columns: 3
+              widgets.yaml: |
+                ---
+                # For configuration options and examples, please see:
+                # https://gethomepage.dev/latest/configs/widgets
+                
+                - logo:
+                    icon: https://github.com/gethomepage.png
+                
+                - datetime:
+                    text_size: xl
+                    format:
+                      timeStyle: short
+                      dateStyle: short
+                      hourCycle: h23
+              services.yaml: |
+                ---
+                # For configuration options and examples, please see:
+                # https://gethomepage.dev/latest/configs/services
+                
+                - Media:
+                    - Plex:
+                        icon: plex.png
+                        href: http://plex.local.example.com
+                        description: Media Server
+                    - Sonarr:
+                        icon: sonarr.png
+                        href: http://sonarr.local.example.com
+                        description: TV Shows
+                    - Radarr:
+                        icon: radarr.png
+                        href: http://radarr.local.example.com
+                        description: Movies
+                    - Prowlarr:
+                        icon: prowlarr.png
+                        href: http://prowlarr.local.example.com
+                        description: Indexer Manager
+                  - Downloads:
+                    - qBittorrent:
+                        icon: qbittorrent.png
+                        href: http://qbittorrent.local.example.com
+                        description: Torrent Client
+                    - SABnzbd:
+                        icon: sabnzbd.png
+                        href: http://sabnzbd.local.example.com
+                        description: Usenet Downloader
+                
+                - Infrastructure:
+                    - ArgoCD:
+                        icon: argocd.png
+                        href: http://argocd.local.example.com
+                        description: GitOps
+              bookmarks.yaml: |
+                ---
+                # For configuration options and examples, please see:
+                # https://gethomepage.dev/latest/configs/bookmarks
+                
+                - Developer:
+                    - Github:
+                        - icon: github.png
+                          href: https://github.com/
+                    - Kubernetes:
+                        - icon: kubernetes.png
+                          href: https://kubernetes.io/  destination:
+    server: https://kubernetes.default.svc
+    namespace: dashboard
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
