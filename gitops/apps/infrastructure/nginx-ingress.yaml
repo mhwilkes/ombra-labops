@@ -47,11 +47,53 @@ spec:
             enabled: true
             minReplicas: 2
             maxReplicas: 10
-            targetCPUUtilizationPercentage: 80
+            targetCPUUtilizationPercentage: 80            
             targetMemoryUtilizationPercentage: 80
           
           # Security context
           allowSnippetAnnotations: true
+          
+          # Admission webhook configuration
+          admissionWebhooks:
+            enabled: true
+            failurePolicy: Fail
+            port: 8443
+            certificate: "/usr/local/certificates/cert"
+            key: "/usr/local/certificates/key"            
+            namespaceSelector: {}
+            objectSelector: {}
+            annotations: {}
+            # Patch configuration for admission webhook
+            patch:
+              enabled: true
+              image:
+                repository: registry.k8s.io/ingress-nginx/kube-webhook-certgen
+                tag: v20230407
+                digest: sha256:543c40fd093964bc9ab509d3e791f9989963021f10de6ce233b36b4b06abc787
+              priorityClassName: ""
+              podAnnotations: {}
+              nodeSelector:
+                kubernetes.io/os: linux
+              tolerations: []
+              labels: {}
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 2000
+                fsGroup: 2000
+              # Job configuration for certificate generation
+              job:
+                ttlSecondsAfterFinished: 0            # Certificate generation patch job
+            certManager:
+              enabled: true
+              rootCert:
+                duration: ""  # default to 1 year
+              admissionCert:
+                duration: ""  # default to 1 year
+              # Use cert-manager to generate webhook certificates
+              issuerRef:
+                name: selfsigned-issuer
+                kind: ClusterIssuer
+                group: cert-manager.io
           
           # Configuration
           config:

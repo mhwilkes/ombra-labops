@@ -2,12 +2,12 @@ apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
-spec:
+spec:  
   acme:
     # The ACME server URL for Let's Encrypt staging
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
-    email: admin@ombra.local  # Update with your email
+    email: mhwilkes@gmail.com
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-staging
@@ -15,18 +15,23 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          ingressClassName: nginx
+          # Specific configuration for nginx-ingress
+          podTemplate:
+            metadata:
+              annotations:
+                "nginx.ingress.kubernetes.io/whitelist-source-range": "0.0.0.0/0"
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
-spec:
+spec:  
   acme:
     # The ACME server URL for Let's Encrypt production
     server: https://acme-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
-    email: admin@ombra.local  # Update with your email
+    email: mhwilkes@gmail.com
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-prod
@@ -34,7 +39,12 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          ingressClassName: nginx
+          # Specific configuration for nginx-ingress
+          podTemplate:
+            metadata:
+              annotations:
+                "nginx.ingress.kubernetes.io/whitelist-source-range": "0.0.0.0/0"
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
