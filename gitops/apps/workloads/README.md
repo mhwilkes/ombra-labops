@@ -179,6 +179,6 @@ See `_template-examples.yaml` for advanced configuration patterns including:
 ## Resources
 
 - [BJW-S App Template Chart](https://github.com/bjw-s/helm-charts/tree/main/charts/other/app-template)
-- [Chart Documentation](https://bjw-s.github.io/helm-charts/docs/app-template/)
+- [Chart Documentation](https://bjw-s-labs.github.io/helm-charts/docs/app-template/)
 - [Values.yaml Reference](https://github.com/bjw-s/helm-charts/blob/main/charts/other/app-template/values.yaml)
 - [Common Application Examples](https://github.com/onedr0p/home-ops)

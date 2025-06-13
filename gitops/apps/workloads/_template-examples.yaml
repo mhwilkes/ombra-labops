@@ -8,9 +8,8 @@ metadata:
   name: example-app
   namespace: argocd
 spec:
-  project: default
-  source:
-    repoURL: https://bjw-s.github.io/helm-charts
+  project: default  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
     targetRevision: 3.5.1  # Always check for latest version
     helm:
