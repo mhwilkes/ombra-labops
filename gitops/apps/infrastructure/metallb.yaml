@@ -50,10 +50,10 @@ spec:
             enabled: false
           prometheusRule:
             enabled: false
-        
-        # CRDs are installed automatically by the chart
+          # CRDs are installed automatically by the chart
         crds:
-          validationFailurePolicy: Fail  destination:
+          validationFailurePolicy: Fail
+  destination:
     server: https://kubernetes.default.svc
     namespace: metallb-system
   syncPolicy:
