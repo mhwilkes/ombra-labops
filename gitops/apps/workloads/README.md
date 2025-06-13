@@ -1,6 +1,33 @@
 # BJW-S Workloads Setup
 
-This directory contains workload definitions using the [bjw-s app-template](https://github.com/bjw-s/helm-charts/tree/main/charts/other/app-template) Helm chart. This chart provides a standardized way to deploy applications in Kubernetes with sensible defaults and extensive customization options.
+This directory contains workload definitions organized by namespace using the [bjw-s app-template](https://github.com/bjw-s/helm-charts/tree/main/charts/other/app-template) Helm chart. This chart provides a standardized way to deploy applications in Kubernetes with sensible defaults and extensive customization options.
+
+## Directory Structure
+
+```
+workloads/
+├── plex/                     # Plex namespace applications
+│   └── plex.yaml
+├── arr/                      # Media management namespace
+│   ├── sonarr.yaml
+│   ├── radarr.yaml
+│   └── prowlarr.yaml
+├── downloads/                # Download clients namespace
+│   ├── qbittorrent.yaml
+│   └── sabnzbd.yaml
+├── dashboard/                # Dashboard namespace
+│   └── homepage.yaml
+└── hello-world/             # Example application
+    └── hello-world.yaml
+```
+
+## ArgoCD Applications
+
+The main `workloads.yaml` file defines separate ArgoCD applications for each namespace:
+- **plex-stack** - Manages Plex namespace applications
+- **arr-stack** - Manages media management applications  
+- **downloads-stack** - Manages download client applications
+- **dashboard-stack** - Manages dashboard applications
 
 ## Overview
 
@@ -149,15 +176,15 @@ Manage application configuration and sensitive data.
 ### Useful Commands
 
 ```powershell
-# Check ArgoCD sync status
-kubectl get applications -n argocd
+# Check ArgoCD sync status for all stacks
+kubectl get applications -n argocd | grep -E "(plex|arr|downloads|dashboard)-stack"
 
-# View pod logs
+# View pod logs by namespace
 kubectl logs -n plex deployment/plex
 kubectl logs -n arr deployment/sonarr
 kubectl logs -n downloads deployment/qbittorrent
 
-# Check service endpoints
+# Check service endpoints by namespace
 kubectl get endpoints -n plex
 kubectl get endpoints -n arr
 kubectl get endpoints -n downloads
