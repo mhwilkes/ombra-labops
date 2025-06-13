@@ -48,15 +48,15 @@ spec:
                     pathType: Prefix
                     service:
                       identifier: app
-                      port: http
-        persistence:
+                      port: http        persistence:
           config:
             enabled: true
             type: hostPath
             hostPath: /opt/prowlarr/config
             hostPathType: DirectoryOrCreate
             globalMounts:
-              - path: /config  destination:
+              - path: /config
+  destination:
     server: https://kubernetes.default.svc
     namespace: arr
   syncPolicy:

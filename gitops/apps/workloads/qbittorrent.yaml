@@ -65,9 +65,9 @@ spec:
             enabled: true
             type: hostPath
             hostPath: /opt/downloads
-            hostPathType: DirectoryOrCreate
-            globalMounts:
-              - path: /downloads  destination:
+            hostPathType: DirectoryOrCreate            globalMounts:
+              - path: /downloads
+  destination:
     server: https://kubernetes.default.svc
     namespace: downloads
   syncPolicy:

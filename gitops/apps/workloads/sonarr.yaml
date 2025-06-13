@@ -68,9 +68,9 @@ spec:
             enabled: true
             type: hostPath
             hostPath: /opt/plex/media/tv
-            hostPathType: DirectoryOrCreate
-            globalMounts:
-              - path: /media  destination:
+            hostPathType: DirectoryOrCreate            globalMounts:
+              - path: /media
+  destination:
     server: https://kubernetes.default.svc
     namespace: arr
   syncPolicy:

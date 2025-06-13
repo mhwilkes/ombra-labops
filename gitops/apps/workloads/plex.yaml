@@ -64,12 +64,12 @@ spec:
             hostPath: /opt/plex/media
             hostPathType: DirectoryOrCreate
             globalMounts:
-              - path: /media
-          transcode:
+              - path: /media          transcode:
             enabled: true
             type: emptyDir
             globalMounts:
-              - path: /transcode  destination:
+              - path: /transcode
+  destination:
     server: https://kubernetes.default.svc
     namespace: plex
   syncPolicy:
