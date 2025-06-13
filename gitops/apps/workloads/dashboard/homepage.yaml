@@ -127,11 +127,10 @@ spec:
                         icon: sabnzbd.png
                         href: https://sabnzbd.michaelwilkes.dev
                         description: Usenet Downloader
-                
-                - Infrastructure:
+                  - Infrastructure:
                     - ArgoCD:
                         icon: argocd.png
-                        href: http://argocd.local.example.com
+                        href: https://argocd.michaelwilkes.dev
                         description: GitOps
               bookmarks.yaml: |
                 ---

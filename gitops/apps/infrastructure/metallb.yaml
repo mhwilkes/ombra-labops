@@ -1,0 +1,88 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://metallb.github.io/metallb
+    chart: metallb
+    targetRevision: 0.14.8
+    helm:
+      values: |
+        # MetalLB configuration for bare-metal load balancing
+        speaker:
+          # Enable speaker for BGP/ARP mode
+          enabled: true
+          # Resource limits
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          # Node selector to run on worker nodes
+          nodeSelector:
+            kubernetes.io/os: linux
+          tolerations: []
+        
+        controller:
+          enabled: true
+          # Resource limits
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          # Node selector
+          nodeSelector:
+            kubernetes.io/os: linux
+        
+        # Prometheus monitoring - disabled until Prometheus is available
+        prometheus:
+          serviceAccount: ""
+          namespace: ""
+          serviceMonitor:
+            enabled: false
+          prometheusRule:
+            enabled: false
+        
+        # CRDs are installed automatically by the chart
+        crds:
+          validationFailurePolicy: Fail  destination:
+    server: https://kubernetes.default.svc
+    namespace: metallb-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb-config
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
+    targetRevision: HEAD
+    path: gitops/apps/infrastructure/metallb
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metallb-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  dependsOn:
+  - metallb

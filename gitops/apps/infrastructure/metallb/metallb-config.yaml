@@ -1,0 +1,28 @@
+# MetalLB IP Address Pool Configuration
+# This defines the range of IPs that MetalLB can assign to LoadBalancer services
+
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  # IP range for LoadBalancer services
+  # Using a range within your Proxmox network that won't conflict with DHCP
+  addresses:
+  - 192.168.55.20-100
+  # Auto-assign IPs from this pool
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default-l2-adv
+  namespace: metallb-system
+spec:
+  # Advertise all IP pools via Layer 2 (ARP)
+  ipAddressPools:
+  - default-pool
+  # Use all nodes as speakers
+  nodeSelectors: []
+  interfaces: []
