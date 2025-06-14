@@ -42,9 +42,9 @@ spec:
         ingress:
           app:
             enabled: true
-            className: nginx
+            className: nginx            
             annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-staging
+              cert-manager.io/cluster-issuer: selfsigned-issuer
             hosts:
               - host: sabnzbd.michaelwilkes.dev
                 paths:
