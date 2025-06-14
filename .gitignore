@@ -2,6 +2,10 @@
 *-kubeconfig*
 *-talosconfig*
 
+# Infisical authentication files
+*infisical-auth*.yaml
+*infisical-auth*.yml
+
 # Binaries and executables
 clusterctl*.exe
 

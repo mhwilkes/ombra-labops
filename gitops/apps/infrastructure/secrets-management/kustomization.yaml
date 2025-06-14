@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # Deploy Infisical operator first
+  # Deploy Infisical operator only
+  # Auth credentials should be applied manually for security
   - infisical-operator.yaml
-  # Then deploy auth credentials
-  - infisical-auth.yaml
