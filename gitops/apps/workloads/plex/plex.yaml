@@ -55,20 +55,22 @@ spec:
             tls:
               - secretName: plex-tls
                 hosts:
-                  - plex.michaelwilkes.dev
+                  - plex.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
-            type: hostPath            
-            hostPath: /opt/plex/config
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 10Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
           media:
             enabled: true
-            type: hostPath
-            hostPath: /opt/plex/media
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-cephfs
+            size: 500Gi
+            accessMode: ReadWriteMany
             globalMounts:
               - path: /media
           transcode:
