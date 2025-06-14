@@ -27,7 +27,6 @@ spec:
           nodeSelector:
             kubernetes.io/os: linux
           tolerations: []
-        
         controller:
           enabled: true
           # Resource limits
@@ -41,7 +40,6 @@ spec:
           # Node selector
           nodeSelector:
             kubernetes.io/os: linux
-        
         # Prometheus monitoring - disabled until Prometheus is available
         prometheus:
           serviceAccount: ""
@@ -53,12 +51,12 @@ spec:
           # CRDs are installed automatically by the chart
         crds:
           validationFailurePolicy: Fail
-        
-        # Configure namespace with proper Pod Security labels
+          # Configure namespace with proper Pod Security labels
         namespaceOverride: "metallb-system"
   destination:
     server: https://kubernetes.default.svc
-    namespace: metallb-system  syncPolicy:
+    namespace: metallb-system
+  syncPolicy:
     automated:
       prune: true
       selfHeal: true
