@@ -1,25 +1,6 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: ceph-secrets
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/mhwilkes/ombra-labops.git
-    targetRevision: HEAD
-    path: gitops/apps/infrastructure
-    directory:
-      include: ceph-secrets.yaml
-  destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
----
+# Ceph CSI Drivers for RBD (block) and CephFS (filesystem) storage
+# These provide dynamic provisioning of persistent volumes from external Ceph cluster
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -32,7 +13,8 @@ spec:
     chart: ceph-csi-rbd
     targetRevision: 3.11.0
     helm:
-      values: |        # External Ceph cluster configuration
+      values: |
+        # External Ceph cluster configuration
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
@@ -45,7 +27,7 @@ spec:
           create: true
           name: ceph-rbd          
           clusterID: "ombra-ceph"
-          pool: "kubernetes"  # Replace with your RBD pool name
+          pool: "kubernetes"
           reclaimPolicy: Delete
           allowVolumeExpansion: true
           mountOptions: []
@@ -65,11 +47,8 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:    
+    syncOptions:
     - CreateNamespace=true
-  dependsOn:
-  - ceph-secrets
-  - infisical-operator
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -83,7 +62,8 @@ spec:
     chart: ceph-csi-cephfs
     targetRevision: 3.11.0
     helm:
-      values: |        # External Ceph cluster configuration for CephFS
+      values: |
+        # External Ceph cluster configuration for CephFS
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
@@ -96,7 +76,7 @@ spec:
           create: true
           name: ceph-cephfs          
           clusterID: "ombra-ceph"
-          fsName: "cephfs"  # Replace with your CephFS name
+          fsName: "cephfs"
           reclaimPolicy: Delete
           allowVolumeExpansion: true
           parameters:
@@ -107,7 +87,7 @@ spec:
             csi.storage.k8s.io/node-stage-secret-name: csi-cephfs-secret
             csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-cephfs
   destination:
-    server: https://kubernetes.default.svc      
+    server: https://kubernetes.default.svc    
     namespace: ceph-csi-cephfs
   syncPolicy:
     automated:
@@ -115,6 +95,3 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-  dependsOn:
-  - ceph-secrets
-  - infisical-operator
