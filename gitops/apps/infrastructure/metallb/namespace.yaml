@@ -1,0 +1,17 @@
+# MetalLB System Namespace with Pod Security Configuration
+# This ensures MetalLB speaker pods can run with required privileged capabilities
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+  labels:
+    # MetalLB requires privileged capabilities for network operations
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+    # Standard namespace label
+    kubernetes.io/metadata.name: metallb-system
+  annotations:
+    # Documentation for why privileged security is required
+    metallb.universe.tf/pod-security-policy: "MetalLB speaker requires NET_ADMIN, NET_RAW, SYS_ADMIN capabilities and host network access for L2/BGP advertisement"
