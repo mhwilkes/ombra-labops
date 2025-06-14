@@ -11,19 +11,6 @@ spec:
     path: gitops/apps/infrastructure/storage
   destination:
     server: https://kubernetes.default.svc
-  # Ignore differences caused by operator-managed fields
-  ignoreDifferences:
-  - group: secrets.infisical.com
-    kind: InfisicalSecret
-    jsonPointers:
-    - /status
-    - /metadata/annotations
-    - /metadata/finalizers
-    - /metadata/resourceVersion
-    - /metadata/uid
-    - /metadata/creationTimestamp
-    - /metadata/generation
-    - /metadata/managedFields
   syncPolicy:
     automated:
       prune: true
