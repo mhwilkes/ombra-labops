@@ -1,0 +1,120 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ceph-secrets
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
+    targetRevision: HEAD
+    path: gitops/apps/infrastructure
+    directory:
+      include: ceph-secrets.yaml
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ceph-csi-rbd
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://ceph.github.io/csi-charts
+    chart: ceph-csi-rbd
+    targetRevision: 3.11.0
+    helm:
+      values: |        # External Ceph cluster configuration
+        csiConfig:
+          - clusterID: "ombra-ceph"
+            monitors:
+              - "10.40.0.60:6789"
+              - "10.40.0.61:6789"
+              - "10.40.0.62:6789"
+        
+        # Storage class for RBD (block storage)
+        storageClass:
+          create: true
+          name: ceph-rbd          
+          clusterID: "ombra-ceph"
+          pool: "kubernetes"  # Replace with your RBD pool name
+          reclaimPolicy: Delete
+          allowVolumeExpansion: true
+          mountOptions: []
+          parameters:
+            imageFormat: "2"
+            imageFeatures: layering
+            csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
+            csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
+            csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+            csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
+            csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
+            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+  destination:
+    server: https://kubernetes.default.svc    
+    namespace: ceph-csi-rbd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:    
+    - CreateNamespace=true
+  dependsOn:
+  - ceph-secrets
+  - infisical-operator
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ceph-csi-cephfs
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://ceph.github.io/csi-charts
+    chart: ceph-csi-cephfs
+    targetRevision: 3.11.0
+    helm:
+      values: |        # External Ceph cluster configuration for CephFS
+        csiConfig:
+          - clusterID: "ombra-ceph"
+            monitors:
+              - "10.40.0.60:6789"
+              - "10.40.0.61:6789"
+              - "10.40.0.62:6789"
+        
+        # Storage class for CephFS (shared filesystem)
+        storageClass:
+          create: true
+          name: ceph-cephfs          
+          clusterID: "ombra-ceph"
+          fsName: "cephfs"  # Replace with your CephFS name
+          reclaimPolicy: Delete
+          allowVolumeExpansion: true
+          parameters:
+            csi.storage.k8s.io/provisioner-secret-name: csi-cephfs-secret
+            csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-cephfs
+            csi.storage.k8s.io/controller-expand-secret-name: csi-cephfs-secret
+            csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-cephfs
+            csi.storage.k8s.io/node-stage-secret-name: csi-cephfs-secret
+            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-cephfs
+  destination:
+    server: https://kubernetes.default.svc      
+    namespace: ceph-csi-cephfs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  dependsOn:
+  - ceph-secrets
+  - infisical-operator
