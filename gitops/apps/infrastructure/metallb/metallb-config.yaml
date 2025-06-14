@@ -10,7 +10,7 @@ spec:
   # IP range for LoadBalancer services
   # Using a range within your Proxmox network that won't conflict with DHCP
   addresses:
-  - 192.168.55.20-100
+  - 192.168.55.20-192.168.55.100
   # Auto-assign IPs from this pool
   autoAssign: true
 ---
