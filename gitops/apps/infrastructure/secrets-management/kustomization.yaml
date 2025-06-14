@@ -6,7 +6,3 @@ resources:
   - infisical-operator.yaml
   # Then deploy auth credentials
   - infisical-auth.yaml
-
-# Ensure proper deployment order
-configurations:
-  - kustomizeconfig.yaml

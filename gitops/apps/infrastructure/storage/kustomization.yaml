@@ -6,7 +6,3 @@ resources:
   - ceph-secrets.yaml
   # Then deploy CSI drivers
   - ceph-csi.yaml
-
-# Ensure proper deployment order
-configurations:
-  - kustomizeconfig.yaml
