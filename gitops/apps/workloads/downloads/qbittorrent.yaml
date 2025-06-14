@@ -58,20 +58,22 @@ spec:
             tls:
               - secretName: qbittorrent-tls
                 hosts:
-                  - qbittorrent.michaelwilkes.dev
+                  - qbittorrent.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
-            type: hostPath
-            hostPath: /opt/qbittorrent/config
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 1Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
           downloads:
             enabled: true
-            type: hostPath
-            hostPath: /opt/downloads
-            hostPathType: DirectoryOrCreate            
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 100Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /downloads
   destination:

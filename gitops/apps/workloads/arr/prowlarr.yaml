@@ -54,13 +54,14 @@ spec:
             tls:
               - secretName: prowlarr-tls
                 hosts:
-                  - prowlarr.michaelwilkes.dev
+                  - prowlarr.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
-            type: hostPath
-            hostPath: /opt/prowlarr/config
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 1Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
   destination:

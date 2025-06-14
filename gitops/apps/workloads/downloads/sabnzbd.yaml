@@ -56,34 +56,38 @@ spec:
             tls:
               - secretName: sabnzbd-tls
                 hosts:
-                  - sabnzbd.michaelwilkes.dev
+                  - sabnzbd.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
-            type: hostPath
-            hostPath: /opt/sabnzbd/config
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 1Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
           downloads:
             enabled: true
-            type: hostPath
-            hostPath: /opt/downloads
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 100Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /downloads
           incomplete:
             enabled: true
-            type: hostPath
-            hostPath: /opt/sabnzbd/incomplete
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 50Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /incomplete-downloads
           media:
             enabled: true
-            type: hostPath
-            hostPath: /opt/plex/media
-            hostPathType: DirectoryOrCreate            
+            type: persistentVolumeClaim
+            storageClass: ceph-cephfs
+            size: 1Ti
+            accessMode: ReadWriteMany
             globalMounts:
               - path: /media
   destination:

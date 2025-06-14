@@ -54,27 +54,30 @@ spec:
             tls:
               - secretName: radarr-tls
                 hosts:
-                  - radarr.michaelwilkes.dev
+                  - radarr.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
-            type: hostPath
-            hostPath: /opt/radarr/config
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 1Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
           downloads:
             enabled: true
-            type: hostPath
-            hostPath: /opt/downloads
-            hostPathType: DirectoryOrCreate
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 100Gi
+            accessMode: ReadWriteOnce
             globalMounts:
               - path: /downloads
           media:
             enabled: true
-            type: hostPath
-            hostPath: /opt/plex/media/movies
-            hostPathType: DirectoryOrCreate            
+            type: persistentVolumeClaim
+            storageClass: ceph-cephfs
+            size: 1Ti
+            accessMode: ReadWriteMany
             globalMounts:
               - path: /media
   destination:
