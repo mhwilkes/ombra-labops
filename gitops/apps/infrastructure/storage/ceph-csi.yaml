@@ -39,7 +39,7 @@ spec:
             csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
             csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
             csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
-            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd  
   destination:
     server: https://kubernetes.default.svc    
     namespace: ceph-csi-rbd
@@ -49,6 +49,12 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    # Apply Pod Security labels for privileged CSI operations
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -95,3 +101,9 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    # Apply Pod Security labels for privileged CSI operations
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
