@@ -72,13 +72,14 @@ spec:
                     cpu: 10m
                     memory: 250Mi
                   limits:
-                    memory: 2Gi
+                    memory: 2Gi                
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
                   capabilities:
                     drop:
-                      - ALLservice:
+                      - ALL
+        service:
           app:
             controller: sonarr
             ports:
