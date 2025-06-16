@@ -19,9 +19,7 @@ spec:
             monitors:
               - "192.168.40.60:6789"
               - "192.168.40.61:6789"
-              - "192.168.40.62:6789"
-
-        # Storage class for RBD (block storage)
+              - "192.168.40.62:6789"        # Storage class for RBD (block storage)
         storageClass:
           create: true
           name: ceph-rbd          
@@ -35,10 +33,57 @@ spec:
             imageFeatures: layering
             csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
             csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
-            csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+            csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret            
             csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
             csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
-            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd  
+            csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+        
+        # Additional storage classes for different pools
+        additionalStorageClasses:
+          - name: ceph-vm-disks
+            clusterID: "ombra-ceph"
+            pool: "virtual-machine-disks"
+            reclaimPolicy: Delete
+            allowVolumeExpansion: true
+            parameters:
+              imageFormat: "2"
+              imageFeatures: layering
+              csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+          
+          - name: ceph-media
+            clusterID: "ombra-ceph"
+            pool: "media"
+            reclaimPolicy: Retain
+            allowVolumeExpansion: true
+            parameters:
+              imageFormat: "2"
+              imageFeatures: layering
+              csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+              
+          - name: ceph-configs
+            clusterID: "ombra-ceph"
+            pool: "configs"
+            reclaimPolicy: Retain
+            allowVolumeExpansion: true
+            parameters:
+              imageFormat: "2"
+              imageFeatures: layering
+              csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
+              csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret
+              csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
   destination:
     server: https://kubernetes.default.svc    
     namespace: ceph-csi-rbd
