@@ -16,14 +16,13 @@ spec:
             containers:
               app:
                 image:
-                  repository: ghcr.io/onedr0p/plex
-                  tag: 1.41.0.8994-f2c27da23
+                  repository: ghcr.io/home-operations/plex
+                  tag: 1.41.8.9834
                 env:
                   TZ: America/New_York
+                  PUID: 1000
+                  PGID: 1000
                   PLEX_CLAIM: "your-plex-claim-token"
-                  PLEX_UID: 1000
-                  PLEX_GID: 1000
-                  ADVERTISE_IP: "https://plex.michaelwilkes.dev/"
                 resources:
                   requests:
                     cpu: 100m
@@ -43,7 +42,7 @@ spec:
             enabled: true
             className: nginx            
             annotations:
-              cert-manager.io/cluster-issuer: selfsigned-issuer
+              cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
               - host: plex.michaelwilkes.dev
                 paths:

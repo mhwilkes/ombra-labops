@@ -39,7 +39,7 @@ spec:
             enabled: true
             className: nginx            
             annotations:
-              cert-manager.io/cluster-issuer: selfsigned-issuer
+              cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
               - host: radarr.michaelwilkes.dev
                 paths:

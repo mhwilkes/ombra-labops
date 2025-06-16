@@ -1,0 +1,108 @@
+# Recyclarr Configuration
+# This file should be placed in your Recyclarr config PVC at /config/recyclarr.yml
+
+# Radarr Configuration
+radarr:
+  movies:
+    base_url: http://radarr.arr.svc.cluster.local:7878
+    api_key: YOUR_RADARR_API_KEY_HERE
+    
+    # Quality Definitions - Sets quality file size targets
+    quality_definition:
+      type: movie
+      
+    # Quality Profiles
+    quality_profiles:
+      - name: HD-1080p
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB-1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+
+    # Custom Formats - Automatically applies TRaSH guide recommendations
+    custom_formats:
+      # Movie Versions
+      - trash_ids:
+          - 0f12c086e289cf966fa5948eac571f44 # Hybrid
+          - 570bc9ebecd92723d2d21500f4be314c # Remaster
+          - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+          - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
+          - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
+          - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
+        quality_profiles:
+          - name: HD-1080p
+
+      # HQ Release Groups
+      - trash_ids:
+          - 3a3ff47579026e76d6504ebea39390de # Remux Tier 01
+          - 9f98181fe5a3fbeb0cc29340da2a468a # Remux Tier 02
+          - 8baaf0b3142bf4d94c42a724f034e27a # Remux Tier 03
+        quality_profiles:
+          - name: HD-1080p
+            score: 1500
+
+# Sonarr Configuration  
+sonarr:
+  tv:
+    base_url: http://sonarr.arr.svc.cluster.local:8989
+    api_key: YOUR_SONARR_API_KEY_HERE
+    
+    # Quality Definitions
+    quality_definition:
+      type: series
+      
+    # Quality Profiles
+    quality_profiles:
+      - name: HD-1080p
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB-1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+
+    # Custom Formats for TV Shows
+    custom_formats:
+      # Streaming Services
+      - trash_ids:
+          - d660701077794679fd59e8bdf4ce3a29 # AMZN
+          - f67c9ca88f463a48346062e8ad07713f # ATVP
+          - 36b72f59f4ea20aad9316f475f2d9fbb # DCU
+          - 89358767a60cc28783cdc3d0be9388a4 # DSNP
+          - 7a235133c87f7da4c8cccceca7e3c7a6 # HBO
+          - a880d6abc21e7c16884f3ae393f84179 # HMAX
+          - f6cce30f1733d5c8194222a7507909bb # HULU
+          - 0ac24a2a68a9700bcb7eeca8e5cd644c # iT
+          - 81d1fbf600e2540cee87f3a23f9d3c1c # MAX
+          - d34870697c9db575f17700212167be23 # NF
+          - b2b980877494b560443631eb1f473867 # NLZ
+          - fb1a91cdc0f26f7ca0696e0e95274645 # OViD
+          - 1656adc6d7bb2c8cca6acfb6592db421 # PCOK
+          - c67a75ae4a1715f2bb4d492755ba4195 # PMTP
+          - 3ac5d84fce98bab1b531393e9c82f467 # QIBI
+          - c30d2958827d1867c73318a5a2957eb1 # RED
+          - ae58039e1319178e6be73caab5c42166 # SHO
+          - 1efe8da11bfd74fbbcd4d8117ddb9213 # STAN
+          - 5d2317d99af813b6529c7ebf01c83533 # VDL
+          - 77a7b25585c18af08f60b1547bb9b4fb # CC
+        quality_profiles:
+          - name: HD-1080p
+            score: 100

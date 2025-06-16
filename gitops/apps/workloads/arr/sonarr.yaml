@@ -12,19 +12,16 @@ spec:
     helm:
       values: |
         controllers:
-          sonarr:
+          sonarr:            
             containers:
-              app:                
+              app:
                 image:
-                  repository: ghcr.io/onedr0p/sonarr-develop
-                  tag: 4.0.10.2544
+                  repository: ghcr.io/home-operations/sonarr
+                  tag: 4.0.15.2940
                 env:
                   TZ: America/New_York
-                  SONARR__INSTANCE_NAME: Sonarr
-                  SONARR__PORT: &port 8989
-                  SONARR__APPLICATION_URL: "https://sonarr.michaelwilkes.dev"
-                  SONARR__LOG_LEVEL: info
-                  SONARR__API_KEY: "your-api-key-here"
+                  PUID: 1000
+                  PGID: 1000
                 resources:
                   requests:
                     cpu: 10m
@@ -42,7 +39,7 @@ spec:
             enabled: true
             className: nginx            
             annotations:
-              cert-manager.io/cluster-issuer: selfsigned-issuer
+              cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
               - host: sonarr.michaelwilkes.dev
                 paths:

@@ -16,17 +16,12 @@ spec:
             containers:
               app:
                 image:
-                  repository: ghcr.io/onedr0p/sabnzbd
-                  tag: 4.3.3
+                  repository: lscr.io/linuxserver/sabnzbd
+                  tag: latest
                 env:
-                  TZ: America/New_York                  
-                  SABNZBD__PORT: &port 8080
-                  SABNZBD__HOST_WHITELIST_ENTRIES: >-
-                    sabnzbd,
-                    sabnzbd.downloads,
-                    sabnzbd.downloads.svc,
-                    sabnzbd.downloads.svc.cluster.local,
-                    sabnzbd.michaelwilkes.dev
+                  TZ: America/New_York
+                  PUID: 1000
+                  PGID: 1000
                 resources:
                   requests:
                     cpu: 10m
@@ -44,7 +39,7 @@ spec:
             enabled: true
             className: nginx            
             annotations:
-              cert-manager.io/cluster-issuer: selfsigned-issuer
+              cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
               - host: sabnzbd.michaelwilkes.dev
                 paths:
