@@ -10,30 +10,64 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |
+      values: |        
         controllers:
           radarr:
+            pod:
+              securityContext:
+                runAsUser: 2000
+                runAsGroup: 2000
+                runAsNonRoot: true
+                fsGroup: 2000
+                fsGroupChangePolicy: OnRootMismatch
+            
             containers:              
               app:                
                 image:
                   repository: ghcr.io/home-operations/radarr
-                  tag: 5.27.0.10101
+                  tag: 5.27.0.10101                
                 env:
                   TZ: America/New_York
-                  PUID: 1000
-                  PGID: 1000
+                  RADARR__APP__INSTANCENAME: Radarr
+                  RADARR__AUTH__METHOD: External
+                  RADARR__LOG__DBENABLED: "False"
+                  RADARR__LOG__LEVEL: info
+                  RADARR__SERVER__PORT: &port 7878
+                  RADARR__UPDATE__BRANCH: develop
+                envFrom:
+                  - secretRef:
+                      name: radarr-secrets
+                probes:
+                  liveness: &probes
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /ping
+                        port: *port
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
                     cpu: 10m
                     memory: 250Mi
                   limits:
                     memory: 2Gi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL        
         service:
           app:
             controller: radarr
             ports:
               http:
-                port: *port        
+                port: 7878
         ingress:
           app:
             enabled: true
@@ -51,10 +85,9 @@ spec:
             tls:
               - secretName: radarr-tls
                 hosts:
-                  - radarr.michaelwilkes.dev        
+                  - radarr.michaelwilkes.dev          
         persistence:
           config:
-            enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 1Gi
@@ -62,7 +95,6 @@ spec:
             globalMounts:
               - path: /config
           downloads:
-            enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 100Gi
@@ -70,7 +102,6 @@ spec:
             globalMounts:
               - path: /downloads
           media:
-            enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-cephfs
             size: 1Ti
