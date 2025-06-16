@@ -17,7 +17,7 @@ spec:
               app:
                 image:
                   repository: ghcr.io/onedr0p/plex
-                  tag: 1.40.4.8679-424562606@sha256:6caeca24f3b08206a94a6a9c102e2c0c14d46d5a9163241716559e8c83f53ff8
+                  tag: 1.41.0.8994-f2c27da23
                 env:
                   TZ: America/New_York
                   PLEX_CLAIM: "your-plex-claim-token"

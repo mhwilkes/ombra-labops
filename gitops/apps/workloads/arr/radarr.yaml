@@ -14,10 +14,10 @@ spec:
         controllers:
           radarr:
             containers:
-              app:
+              app:                
                 image:
                   repository: ghcr.io/onedr0p/radarr-develop
-                  tag: 5.11.0.9244@sha256:82cfd5360d2cd0e9d9d0b88d1cc4e3dcb7c6e9e5ecd7dab9ba4b2c50fa97bbb6
+                  tag: 5.14.0.9383
                 env:
                   TZ: America/New_York
                   RADARR__INSTANCE_NAME: Radarr
