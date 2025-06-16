@@ -10,30 +10,75 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |
+      values: |        
         controllers:
           sabnzbd:
+            pod:
+              securityContext:
+                runAsUser: 2000
+                runAsGroup: 2000
+                runAsNonRoot: true
+                fsGroup: 2000
+                fsGroupChangePolicy: OnRootMismatch
+            initContainers:
+              init-permissions:
+                image:
+                  repository: busybox
+                  tag: latest
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    chown -R 2000:2000 /config
+                    chmod -R 755 /config
+                securityContext:
+                  runAsUser: 0
+                volumeMounts:
+                  - name: config
+                    mountPath: /config
             containers:
               app:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1
-                env:
+                  tag: 4.5.1                env:
                   TZ: America/New_York
-                  PUID: 1000
-                  PGID: 1000
+                  SABNZBD__APP__INSTANCENAME: SABnzbd
+                  SABNZBD__SERVER__PORT: &port 8080
+                  SABNZBD__LOG__LEVEL: info
+                envFrom:
+                  - secretRef:
+                      name: sabnzbd-secrets
+                probes:
+                  liveness: &probes
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /
+                        port: *port
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
                     cpu: 10m
                     memory: 250Mi
                   limits:
                     memory: 8Gi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL
         service:
           app:
-            controller: sabnzbd
+            controller: sabnzbd            
             ports:
               http:
-                port: *port        
+                port: 8080
         ingress:
           app:
             enabled: true
