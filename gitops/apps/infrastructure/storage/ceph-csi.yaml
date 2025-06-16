@@ -13,15 +13,14 @@ spec:
     chart: ceph-csi-rbd
     targetRevision: 3.11.0
     helm:
-      values: |
-        # External Ceph cluster configuration
+      values: |        # External Ceph cluster configuration
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
-              - "10.40.0.60:6789"
-              - "10.40.0.61:6789"
-              - "10.40.0.62:6789"
-        
+              - "192.168.40.60:6789"
+              - "192.168.40.61:6789"
+              - "192.168.40.62:6789"
+
         # Storage class for RBD (block storage)
         storageClass:
           create: true
@@ -68,15 +67,14 @@ spec:
     chart: ceph-csi-cephfs
     targetRevision: 3.11.0
     helm:
-      values: |
-        # External Ceph cluster configuration for CephFS
+      values: |        # External Ceph cluster configuration for CephFS
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
-              - "10.40.0.60:6789"
-              - "10.40.0.61:6789"
-              - "10.40.0.62:6789"
-        
+              - "192.168.40.60:6789"
+              - "192.168.40.61:6789"
+              - "192.168.40.62:6789"
+
         # Storage class for CephFS (shared filesystem)
         storageClass:
           create: true
