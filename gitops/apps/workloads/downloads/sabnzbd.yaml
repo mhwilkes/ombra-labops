@@ -16,8 +16,8 @@ spec:
             containers:
               app:
                 image:
-                  repository: lscr.io/linuxserver/sabnzbd
-                  tag: latest
+                  repository: ghcr.io/home-operations/sabnzbd
+                  tag: 4.5.1
                 env:
                   TZ: America/New_York
                   PUID: 1000
