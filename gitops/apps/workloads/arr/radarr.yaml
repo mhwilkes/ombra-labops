@@ -13,18 +13,15 @@ spec:
       values: |
         controllers:
           radarr:
-            containers:
+            containers:              
               app:                
                 image:
-                  repository: ghcr.io/onedr0p/radarr-develop
-                  tag: 5.14.0.9383
+                  repository: ghcr.io/home-operations/radarr
+                  tag: 5.27.0.10101
                 env:
                   TZ: America/New_York
-                  RADARR__INSTANCE_NAME: Radarr
-                  RADARR__PORT: &port 7878
-                  RADARR__APPLICATION_URL: "https://radarr.michaelwilkes.dev"
-                  RADARR__LOG_LEVEL: info
-                  RADARR__API_KEY: "your-api-key-here"
+                  PUID: 1000
+                  PGID: 1000
                 resources:
                   requests:
                     cpu: 10m
