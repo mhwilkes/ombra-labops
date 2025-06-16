@@ -10,33 +10,63 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |
+      values: |        
         controllers:
           prowlarr:
+            annotations:
+              reloader.stakater.com/auto: "true"
+            
+            pod:
+              securityContext:
+                runAsUser: 2000
+                runAsGroup: 2000
+                runAsNonRoot: true
+                fsGroup: 2000
+                fsGroupChangePolicy: OnRootMismatch
+            
             containers:
               app:                
                 image:
-                  repository: ghcr.io/onedr0p/prowlarr-develop
-                  tag: 1.26.2.4886
+                  repository: ghcr.io/home-operations/prowlarr
+                  tag: 1.37.0.5076
                 env:
                   TZ: America/New_York
-                  PROWLARR__INSTANCE_NAME: Prowlarr
-                  PROWLARR__PORT: &port 9696
-                  PROWLARR__APPLICATION_URL: "https://prowlarr.michaelwilkes.dev"
-                  PROWLARR__LOG_LEVEL: info
-                  PROWLARR__API_KEY: "your-api-key-here"
+                  PROWLARR__APP__INSTANCENAME: Prowlarr
+                  PROWLARR__AUTH__METHOD: External
+                  PROWLARR__LOG__DBENABLED: "False"
+                  PROWLARR__LOG__LEVEL: info
+                  PROWLARR__SERVER__PORT: &port 9696
+                  PROWLARR__UPDATE__BRANCH: develop
+                probes:
+                  liveness: &probes
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /ping
+                        port: *port
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
-                    cpu: 10m
-                    memory: 100Mi
+                    cpu: 18m
+                    memory: 128Mi
                   limits:
-                    memory: 500Mi
-        service:
+                    memory: 512Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL        service:
           app:
             controller: prowlarr
             ports:
               http:
-                port: *port        
+                port: *port
         ingress:
           app:
             enabled: true
@@ -54,10 +84,9 @@ spec:
             tls:
               - secretName: prowlarr-tls
                 hosts:
-                  - prowlarr.michaelwilkes.dev        
+                  - prowlarr.michaelwilkes.dev          
         persistence:
           config:
-            enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 1Gi
