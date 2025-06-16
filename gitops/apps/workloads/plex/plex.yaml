@@ -17,12 +17,14 @@ spec:
               app:
                 image:
                   repository: ghcr.io/home-operations/plex
-                  tag: 1.41.8.9834
+                  tag: 1.41.8.9834                
                 env:
                   TZ: America/New_York
                   PUID: 1000
                   PGID: 1000
-                  PLEX_CLAIM: "your-plex-claim-token"
+                envFrom:
+                  - secretRef:
+                      name: plex-secrets
                 resources:
                   requests:
                     cpu: 100m
