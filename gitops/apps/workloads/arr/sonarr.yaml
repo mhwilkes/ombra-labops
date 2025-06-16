@@ -20,7 +20,6 @@ spec:
                 runAsNonRoot: true
                 fsGroup: 2000
                 fsGroupChangePolicy: OnRootMismatch
-            
             initContainers:
               init-permissions:
                 image:
@@ -34,15 +33,12 @@ spec:
                     chmod -R 755 /config
                 securityContext:
                   runAsUser: 0
-                volumeMounts:
-                  - name: config
-                    mountPath: /config
             
             containers:
-              app:
+              app:                
                 image:
                   repository: ghcr.io/home-operations/sonarr
-                  tag: 4.0.15.2940                  
+                  tag: 4.0.15.2940
                 env:
                   TZ: America/New_York
                   SONARR__APP__INSTANCENAME: Sonarr

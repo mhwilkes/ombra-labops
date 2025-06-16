@@ -19,7 +19,7 @@ spec:
                 runAsGroup: 2000
                 runAsNonRoot: true
                 fsGroup: 2000
-                fsGroupChangePolicy: OnRootMismatch
+                fsGroupChangePolicy: OnRootMismatch            
             initContainers:
               init-permissions:
                 image:
@@ -33,14 +33,12 @@ spec:
                     chmod -R 755 /config
                 securityContext:
                   runAsUser: 0
-                volumeMounts:
-                  - name: config
-                    mountPath: /config
             containers:
               app:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1                env:
+                  tag: 4.5.1                
+                env:
                   TZ: America/New_York
                   SABNZBD__APP__INSTANCENAME: SABnzbd
                   SABNZBD__SERVER__PORT: &port 8080
