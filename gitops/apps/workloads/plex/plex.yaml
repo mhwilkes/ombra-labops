@@ -34,7 +34,7 @@ spec:
                   PLEX_CLAIM:
                     valueFrom:
                       secretKeyRef:
-                        name: plex-secrets
+                        name: claim-token
                         key: PLEX_CLAIM
                 resources:
                   requests:
