@@ -23,7 +23,7 @@ spec:
             containers:
               app:                
                 image:
-                  repository: ghcr.io/sctx/overseerr
+                  repository: sctx/overseerr
                   tag: develop
                 env:
                   TZ: America/New_York
