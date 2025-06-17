@@ -24,16 +24,17 @@ spec:
               app:
                 image:
                   repository: ghcr.io/home-operations/plex
-                  tag: 1.41.8.9834                
-                env:
+                  tag: 1.41.8.9834                  env:
                   TZ: America/New_York
                   PLEX_UID: 2000
                   PLEX_GID: 2000
                   TRANSCODE_PATH: /transcode
                   ADVERTISE_IP: "http://192.168.55.210:32400/"
-                envFrom:
-                  - secretRef:
-                      name: claim-token
+                  PLEX_CLAIM:
+                    valueFrom:
+                      secretKeyRef:
+                        name: plex-secrets
+                        key: PLEX_CLAIM
                 resources:
                   requests:
                     cpu: 100m
