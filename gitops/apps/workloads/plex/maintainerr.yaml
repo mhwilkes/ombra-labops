@@ -30,38 +30,25 @@ spec:
                 probes:
                   liveness:
                     enabled: true
-                    custom: true
-                    spec:
-                      httpGet:
-                        path: /api/health
-                        port: 6246
-                      initialDelaySeconds: 0
-                      periodSeconds: 10
-                      timeoutSeconds: 1
-                      failureThreshold: 3
                   readiness:
                     enabled: true
-                    custom: true
+                  startup:
+                    enabled: true
                     spec:
-                      httpGet:
-                        path: /api/health
-                        port: 6246
-                      initialDelaySeconds: 0
-                      periodSeconds: 10
-                      timeoutSeconds: 1
-                      failureThreshold: 3
-                resources:
-                  requests:
-                    cpu: 10m
-                    memory: 250Mi
-                  limits:
-                    memory: 1Gi
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  readOnlyRootFilesystem: true
-                  capabilities:
-                    drop:
-                      - ALL
+                      failureThreshold: 30
+                      periodSeconds: 5
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 250Mi
+                      limits:
+                        memory: 1Gi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                        drop:
+                          - ALL
         service:
           app:
             controller: maintainerr
