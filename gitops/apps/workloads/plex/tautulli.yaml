@@ -1,0 +1,111 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tautulli
+  namespace: argocd
+spec:
+  project: default  
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 3.5.1
+    helm:
+      values: |          
+        controllers:
+          tautulli:
+            pod:
+              securityContext:
+                runAsUser: 2000
+                runAsGroup: 2000
+                runAsNonRoot: true
+                fsGroup: 2000
+                fsGroupChangePolicy: "Always"
+            containers:
+              app:
+                image:
+                  repository: ghcr.io/home-operations/tautulli
+                  tag: 2.15.2
+                env:
+                  TZ: America/New_York
+                probes:
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /status
+                        port: 8181
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /status
+                        port: 8181
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 250Mi
+                  limits:
+                    memory: 1Gi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL
+        service:
+          app:
+            controller: tautulli
+            ports:
+              http:
+                port: 8181
+        ingress:
+          app:
+            enabled: true
+            className: nginx            
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+            hosts:
+              - host: tautulli.michaelwilkes.dev
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: tautulli-tls
+                hosts:
+                  - tautulli.michaelwilkes.dev        
+        persistence:
+          config:
+            enabled: true
+            type: persistentVolumeClaim
+            storageClass: ceph-rbd
+            size: 5Gi
+            accessMode: ReadWriteOnce
+            globalMounts:
+              - path: /config
+          tmp:
+            enabled: true
+            type: emptyDir
+            globalMounts:
+              - path: /tmp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: plex
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
