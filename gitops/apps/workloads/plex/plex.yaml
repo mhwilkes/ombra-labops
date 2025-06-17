@@ -80,10 +80,7 @@ spec:
               - path: /config
           media:
             enabled: true
-            type: persistentVolumeClaim
-            storageClass: ceph-cephfs
-            size: 1Ti
-            accessMode: ReadWriteMany
+            existingClaim: shared-media-data
             globalMounts:
               - path: /data
           transcode:

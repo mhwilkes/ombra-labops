@@ -97,13 +97,10 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config          
+              - path: /config
           media:
             enabled: true
-            type: persistentVolumeClaim
-            storageClass: ceph-cephfs
-            size: 1Ti
-            accessMode: ReadWriteMany
+            existingClaim: shared-media-data
             globalMounts:
               - path: /data
           tmp:
