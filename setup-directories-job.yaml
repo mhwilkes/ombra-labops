@@ -28,6 +28,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
-      volumes:      - name: data
+      volumes:      
+      - name: data
         persistentVolumeClaim:
           claimName: shared-media-data
