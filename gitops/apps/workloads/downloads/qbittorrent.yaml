@@ -64,7 +64,8 @@ spec:
                   readOnlyRootFilesystem: true
                   capabilities:
                     drop:
-                      - ALL        service:
+                      - ALL
+        service:
           app:
             controller: qbittorrent
             type: LoadBalancer
