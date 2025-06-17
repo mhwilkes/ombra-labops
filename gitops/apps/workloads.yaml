@@ -77,3 +77,23 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: requests-stack
+  namespace: argocd
+spec:
+  project: default  
+  source:
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
+    targetRevision: HEAD
+    path: gitops/apps/workloads/requests
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
