@@ -93,7 +93,7 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config          
+              - path: /config
           data:
             enabled: true
             existingClaim: shared-media-data
