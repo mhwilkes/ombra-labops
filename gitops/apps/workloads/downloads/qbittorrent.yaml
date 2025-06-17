@@ -24,18 +24,37 @@ spec:
               app:
                 image:
                   repository: ghcr.io/home-operations/qbittorrent
-                  tag: 5.1.0
+                  tag: 5.1.0                
                 env:
                   TZ: America/New_York
-                  PUID: 1000
-                  PGID: 1000
-                  WEBUI_PORT: *port
+                  QBITTORRENT__PORT: &port 8080
+                  QBITTORRENT__BT_PORT: &bittorrentPort 6881
+                  QBT_Application__MemoryWorkingSetLimit: 8000
+                probes:
+                  liveness: &probes
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /
+                        port: *port
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
                     cpu: 10m
                     memory: 250Mi
                   limits:
                     memory: 8Gi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL
         service:
           app:
             controller: qbittorrent
