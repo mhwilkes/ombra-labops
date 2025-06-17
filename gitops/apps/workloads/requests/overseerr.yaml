@@ -21,10 +21,10 @@ spec:
                 fsGroup: 2000
                 fsGroupChangePolicy: "Always"
             containers:
-              app:
+              app:                
                 image:
-                  repository: ghcr.io/home-operations/overseerr
-                  tag: 1.33.2
+                  repository: ghcr.io/sctx/overseerr
+                  tag: develop
                 env:
                   TZ: America/New_York
                   LOG_LEVEL: info
