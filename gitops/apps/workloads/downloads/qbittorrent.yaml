@@ -27,22 +27,32 @@ spec:
                   tag: 5.1.0                
                 env:
                   TZ: America/New_York
-                  QBITTORRENT__PORT: &port 8080
-                  QBITTORRENT__BT_PORT: &bittorrentPort 6881
+                  QBITTORRENT__PORT: 8080
+                  QBITTORRENT__BT_PORT: 6881
                   QBT_Application__MemoryWorkingSetLimit: 8000
                 probes:
-                  liveness: &probes
+                  liveness:
                     enabled: true
                     custom: true
                     spec:
                       httpGet:
                         path: /
-                        port: *port
+                        port: 8080
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness: *probes
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /
+                        port: 8080
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
                 resources:
                   requests:
                     cpu: 10m
@@ -54,19 +64,18 @@ spec:
                   readOnlyRootFilesystem: true
                   capabilities:
                     drop:
-                      - ALL
-        service:
+                      - ALL        service:
           app:
             controller: qbittorrent
             type: LoadBalancer
             loadBalancerIP: 192.168.55.211
             ports:
               http:
-                port: *port
+                port: 8080
               bittorrent:
-                port: *bittorrentPort
+                port: 6881
                 protocol: TCP
-                targetPort: *bittorrentPort        
+                targetPort: 6881
         ingress:
           app:
             enabled: true
