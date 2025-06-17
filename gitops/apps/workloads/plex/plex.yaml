@@ -13,6 +13,13 @@ spec:
       values: |
         controllers:
           plex:
+            pod:
+              securityContext:
+                runAsUser: 2000
+                runAsGroup: 2000
+                runAsNonRoot: true
+                fsGroup: 2000
+                fsGroupChangePolicy: "Always"
             containers:
               app:
                 image:
@@ -20,8 +27,6 @@ spec:
                   tag: 1.41.8.9834                
                 env:
                   TZ: America/New_York
-                  PUID: 1000
-                  PGID: 1000
                 envFrom:
                   - secretRef:
                       name: claim-token

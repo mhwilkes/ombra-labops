@@ -10,7 +10,7 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |        
+      values: |          
         controllers:
           sabnzbd:
             pod:
@@ -19,20 +19,7 @@ spec:
                 runAsGroup: 2000
                 runAsNonRoot: true
                 fsGroup: 2000
-                fsGroupChangePolicy: OnRootMismatch            
-            initContainers:
-              init-permissions:
-                image:
-                  repository: busybox
-                  tag: latest
-                command:
-                  - /bin/sh
-                  - -c
-                  - |
-                    chown -R 2000:2000 /config
-                    chmod -R 755 /config
-                securityContext:
-                  runAsUser: 0
+                fsGroupChangePolicy: "Always"
             containers:
               app:
                 image:

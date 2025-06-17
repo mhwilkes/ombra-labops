@@ -36,7 +36,6 @@ spec:
                 volumeMounts:
                   - name: config
                     mountPath: /config
-            
             containers:
               app:                
                 image:
