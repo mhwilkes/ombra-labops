@@ -84,7 +84,7 @@ spec:
             tls:
               - secretName: radarr-tls
                 hosts:
-                  - radarr.michaelwilkes.dev          
+                  - radarr.michaelwilkes.dev
         persistence:
           config:
             type: persistentVolumeClaim
@@ -93,20 +93,13 @@ spec:
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
-          downloads:
-            type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 100Gi
-            accessMode: ReadWriteOnce
-            globalMounts:
-              - path: /downloads
-          media:
+          data:
             type: persistentVolumeClaim
             storageClass: ceph-cephfs
             size: 1Ti
             accessMode: ReadWriteMany
             globalMounts:
-              - path: /media
+              - path: /data
   destination:
     server: https://kubernetes.default.svc
     namespace: arr

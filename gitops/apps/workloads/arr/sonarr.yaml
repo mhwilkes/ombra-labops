@@ -84,7 +84,7 @@ spec:
             tls:
               - secretName: sonarr-tls
                 hosts:
-                  - sonarr.michaelwilkes.dev        
+                  - sonarr.michaelwilkes.dev
         persistence:
           config:
             enabled: true
@@ -94,22 +94,14 @@ spec:
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
-          downloads:
-            enabled: true
-            type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 100Gi
-            accessMode: ReadWriteOnce
-            globalMounts:
-              - path: /downloads
-          media:
+          data:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-cephfs
             size: 1Ti
             accessMode: ReadWriteMany
             globalMounts:
-              - path: /media
+              - path: /data
   destination:
     server: https://kubernetes.default.svc
     namespace: arr

@@ -94,7 +94,7 @@ spec:
             tls:
               - secretName: qbittorrent-tls
                 hosts:
-                  - qbittorrent.michaelwilkes.dev        
+                  - qbittorrent.michaelwilkes.dev
         persistence:
           config:
             enabled: true
@@ -104,14 +104,14 @@ spec:
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
-          downloads:
+          data:
             enabled: true
             type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 100Gi
-            accessMode: ReadWriteOnce
+            storageClass: ceph-cephfs
+            size: 1Ti
+            accessMode: ReadWriteMany
             globalMounts:
-              - path: /downloads
+              - path: /data
   destination:
     server: https://kubernetes.default.svc
     namespace: downloads

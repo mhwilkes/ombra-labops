@@ -82,10 +82,10 @@ spec:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-cephfs
-            size: 500Gi
+            size: 1Ti
             accessMode: ReadWriteMany
             globalMounts:
-              - path: /media          
+              - path: /data
           transcode:
             enabled: true
             type: emptyDir

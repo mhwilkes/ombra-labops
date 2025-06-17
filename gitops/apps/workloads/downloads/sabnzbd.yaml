@@ -81,7 +81,7 @@ spec:
             tls:
               - secretName: sabnzbd-tls
                 hosts:
-                  - sabnzbd.michaelwilkes.dev        
+                  - sabnzbd.michaelwilkes.dev
         persistence:
           config:
             enabled: true
@@ -91,14 +91,14 @@ spec:
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
-          downloads:
+          data:
             enabled: true
             type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 100Gi
-            accessMode: ReadWriteOnce
+            storageClass: ceph-cephfs
+            size: 1Ti
+            accessMode: ReadWriteMany
             globalMounts:
-              - path: /downloads
+              - path: /data
           incomplete:
             enabled: true
             type: persistentVolumeClaim
@@ -106,15 +106,7 @@ spec:
             size: 50Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /incomplete-downloads
-          media:
-            enabled: true
-            type: persistentVolumeClaim
-            storageClass: ceph-cephfs
-            size: 1Ti
-            accessMode: ReadWriteMany
-            globalMounts:
-              - path: /media
+              - path: /data/downloads/incomplete
   destination:
     server: https://kubernetes.default.svc
     namespace: downloads

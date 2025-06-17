@@ -97,7 +97,7 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config
+              - path: /config          
           media:
             enabled: true
             type: persistentVolumeClaim
@@ -105,7 +105,7 @@ spec:
             size: 1Ti
             accessMode: ReadWriteMany
             globalMounts:
-              - path: /media
+              - path: /data
           tmp:
             enabled: true
             type: emptyDir
