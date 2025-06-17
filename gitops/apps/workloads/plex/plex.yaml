@@ -27,6 +27,10 @@ spec:
                   tag: 1.41.8.9834                
                 env:
                   TZ: America/New_York
+                  PLEX_UID: 2000
+                  PLEX_GID: 2000
+                  TRANSCODE_PATH: /transcode
+                  ADVERTISE_IP: "http://192.168.55.210:32400/"
                 envFrom:
                   - secretRef:
                       name: claim-token
@@ -35,6 +39,7 @@ spec:
                     cpu: 100m
                     memory: 2Gi
                   limits:
+                    cpu: 4000m
                     memory: 8Gi
         service:
           app:
@@ -78,10 +83,11 @@ spec:
             size: 500Gi
             accessMode: ReadWriteMany
             globalMounts:
-              - path: /media
+              - path: /media          
           transcode:
             enabled: true
             type: emptyDir
+            sizeLimit: 10Gi
             globalMounts:
               - path: /transcode
   destination:
