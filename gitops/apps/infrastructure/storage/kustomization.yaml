@@ -7,6 +7,6 @@ resources:
   # Then deploy CSI drivers
   - ceph-csi.yaml
   # Create simple shared media storage - THIS IS THE RECOMMENDED APPROACH
-  - simple-shared-media.yaml
+  - cross-namespace-shared-storage.yaml
 
 # Note: No default namespace set to avoid conflicts since resources go to different namespaces
