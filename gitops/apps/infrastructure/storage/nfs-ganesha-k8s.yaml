@@ -113,12 +113,12 @@ data:
         NFS_Protocols = 4;
         Nb_Worker = 16;
     }
-    
-    # Enable NFS v4
+      # Enable NFS v4
     NFSv4 {
         Minor_Versions = 1, 2;
         Delegations = true;
-        RecoveryBackend = rados_cluster;
+        RecoveryBackend = fs;
+        RecoveryRoot = "/export/recovery";
     }
     
     # Logging
@@ -206,7 +206,7 @@ spec:
             memory: 256Mi
           limits:
             cpu: 1000m
-            memory: 1Gi
+            memory: 1Gi        
         volumeMounts:
         - name: ganesha-config
           mountPath: /etc/ganesha
@@ -215,6 +215,8 @@ spec:
           mountPath: /export/media
         - name: ganesha-export-root
           mountPath: /export
+        - name: ganesha-recovery
+          mountPath: /export/recovery
         livenessProbe:
           tcpSocket:
             port: 2049
@@ -224,7 +226,7 @@ spec:
           tcpSocket:
             port: 2049
           initialDelaySeconds: 10
-          periodSeconds: 5
+          periodSeconds: 5      
       volumes:
       - name: ganesha-config
         configMap:
@@ -233,6 +235,8 @@ spec:
         persistentVolumeClaim:
           claimName: cephfs-media-export
       - name: ganesha-export-root
+        emptyDir: {}
+      - name: ganesha-recovery
         emptyDir: {}
 
 # LoadBalancer Service for NFS-Ganesha
