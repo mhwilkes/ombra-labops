@@ -103,11 +103,10 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config          
-          data:
+              - path: /config            data:
             enabled: true
             type: nfs
-            server: nfs-ganesha.nfs-ganesha.svc.cluster.local
+            server: rook-nfs-media.rook-ceph.svc.cluster.local
             path: /media
             globalMounts:
               - path: /data

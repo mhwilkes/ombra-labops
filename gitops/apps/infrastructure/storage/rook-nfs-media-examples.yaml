@@ -1,0 +1,271 @@
+# Updated Media Workload Examples using Rook NFS
+# These replace the direct NFS mounts with cleaner Rook NFS integration
+
+# Updated Plex Deployment with Rook NFS
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex-rook-nfs
+  namespace: plex
+  labels:
+    app: plex
+    nfs-backend: rook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+        nfs-backend: rook
+    spec:
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      containers:
+      - name: plex
+        image: plexinc/pms-docker:1.40.4.8679-424562606
+        env:
+        - name: PLEX_CLAIM
+          valueFrom:
+            secretKeyRef:
+              name: plex-secrets
+              key: plex-claim-token
+        - name: PLEX_UID
+          value: "2000"
+        - name: PLEX_GID
+          value: "2000"
+        - name: TZ
+          value: "America/New_York"
+        ports:
+        - containerPort: 32400
+          name: plex
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+        volumeMounts:
+        - name: plex-config
+          mountPath: /config
+        - name: media-library
+          mountPath: /data/media
+          subPath: media
+          readOnly: true  # Plex only reads media files
+        - name: media-downloads  
+          mountPath: /data/downloads
+          subPath: downloads
+          readOnly: true  # Downloads completed by other apps
+        livenessProbe:
+          httpGet:
+            path: /identity
+            port: 32400
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /identity
+            port: 32400
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: plex-config
+        persistentVolumeClaim:
+          claimName: plex-config
+      - name: media-library
+        nfs:
+          server: rook-nfs-media.rook-ceph.svc.cluster.local
+          path: /
+      - name: media-downloads
+        nfs:
+          server: rook-nfs-media.rook-ceph.svc.cluster.local
+          path: /
+
+---
+# Updated Sonarr Deployment with Rook NFS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-rook-nfs
+  namespace: arr
+  labels:
+    app: sonarr
+    nfs-backend: rook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+        nfs-backend: rook
+    spec:
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      containers:
+      - name: sonarr
+        image: linuxserver/sonarr:4.0.9
+        env:
+        - name: PUID
+          value: "2000"
+        - name: PGID
+          value: "2000"
+        - name: TZ
+          value: "America/New_York"
+        ports:
+        - containerPort: 8989
+          name: http
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: sonarr-config
+          mountPath: /config
+        - name: media-nfs
+          mountPath: /tv
+          subPath: media/tv
+        - name: media-nfs
+          mountPath: /downloads
+          subPath: downloads
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8989
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8989
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: sonarr-config
+        persistentVolumeClaim:
+          claimName: sonarr-config
+      - name: media-nfs
+        nfs:
+          server: rook-nfs-media.rook-ceph.svc.cluster.local
+          path: /
+
+---
+# Updated qBittorrent Deployment with Rook NFS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent-rook-nfs
+  namespace: downloads
+  labels:
+    app: qbittorrent
+    nfs-backend: rook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+        nfs-backend: rook
+    spec:
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      containers:
+      - name: qbittorrent
+        image: linuxserver/qbittorrent:4.6.7
+        env:
+        - name: PUID
+          value: "2000"
+        - name: PGID
+          value: "2000"
+        - name: TZ
+          value: "America/New_York"
+        - name: WEBUI_PORT
+          value: "8080"
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 6881
+          name: bt-tcp
+          protocol: TCP
+        - containerPort: 6881
+          name: bt-udp
+          protocol: UDP
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        volumeMounts:
+        - name: qbittorrent-config
+          mountPath: /config
+        - name: media-nfs
+          mountPath: /downloads
+          subPath: torrents
+        - name: media-nfs
+          mountPath: /incomplete
+          subPath: downloads
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: qbittorrent-config
+        persistentVolumeClaim:
+          claimName: qbittorrent-config
+      - name: media-nfs
+        nfs:
+          server: rook-nfs-media.rook-ceph.svc.cluster.local
+          path: /
+
+---
+# Migration Notes for Media Workloads:
+#
+# KEY CHANGES:
+# 1. NFS server endpoint changed to: rook-nfs-media.rook-ceph.svc.cluster.local
+# 2. All volumes use single NFS mount with subPaths for organization
+# 3. Better resource limits and health checks
+# 4. Consistent UID/GID (2000:2000) across all apps
+# 5. Labels indicate nfs-backend: rook for easy identification
+#
+# MIGRATION STRATEGY:
+# 1. Deploy these alongside existing workloads (different names)
+# 2. Test functionality with Rook NFS
+# 3. Switch traffic/ingress to new deployments
+# 4. Remove old deployments after verification
+# 5. Update original names after cleanup
+#
+# ADVANTAGES:
+# ✅ Single NFS endpoint for all media
+# ✅ Better performance with native CephFS FSAL
+# ✅ Automatic failover and load balancing
+# ✅ Simplified volume management
+# ✅ Integrated monitoring through Rook
+# ✅ CRD-based NFS export management

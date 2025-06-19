@@ -6,10 +6,12 @@ resources:
   - ceph-secrets.yaml
   # Then deploy CSI drivers
   - ceph-csi.yaml
-  # Deploy NFS-Ganesha in Kubernetes (depends on Ceph CSI)
-  - nfs-ganesha-k8s.yaml
+  
+  # Rook-based NFS (production solution)
+  - rook-nfs-ganesha.yaml
+  
   # Create media namespaces and verification jobs
   - nfs-shared-storage.yaml
 
-# Note: No default namespace set to avoid conflicts since resources go to different namespaces
-# Applications will mount NFS directly - no shared PVCs needed
+# Note: Uses Rook operator for native CephFS NFS exports
+# Media applications will mount: rook-nfs-media.rook-ceph.svc.cluster.local

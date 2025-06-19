@@ -80,10 +80,10 @@ metadata:
     app: nfs-ganesha
 data:  
   ganesha.conf: |
-    # NFS-Ganesha configuration for CephFS export using CephFS FSAL
+    # NFS-Ganesha configuration for CephFS export using VFS FSAL
     EXPORT {
         Export_Id = 1;
-        Path = "/";
+        Path = "/export/media";
         Pseudo = "/media";
         Protocols = 4;
         Transports = TCP;
@@ -93,21 +93,16 @@ data:
         # Security - allow access from cluster network
         Sectype = sys;
         
-        # CephFS FSAL for direct CephFS access
+        # VFS FSAL for CephFS mounted via PVC
         FSAL {
-            Name = CEPH;
-            User_Id = "admin";
-            Secret_Access_Key = "/etc/ceph/keyring";
-            # Ceph configuration file path
-            Ceph_Conf = "/etc/ceph/ceph.conf";
+            Name = VFS;
         }
         
         # Allow access from Kubernetes pod network
         CLIENT {
             Clients = 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16;
             Access_Type = RW;
-            Squash = No_Root_Squash;
-        }
+            Squash = No_Root_Squash;        }
     }
     
     # NFS Core parameters
@@ -115,8 +110,9 @@ data:
         NFS_Port = 2049;
         MNT_Port = 20048;
         NFS_Protocols = 4;
-        Nb_Worker = 16;
-    }      # Enable NFS v4
+    }
+    
+    # Enable NFS v4
     NFSv4 {
         Minor_Versions = 1, 2;
         Delegations = true;
@@ -169,45 +165,23 @@ spec:
               labelSelector:
                 matchLabels:
                   app: nfs-ganesha
-              topologyKey: kubernetes.io/hostname
-      # Security context for NFS-Ganesha - requires privileged access      
+              topologyKey: kubernetes.io/hostname      # Security context for NFS-Ganesha - requires privileged access      
       securityContext:
         runAsUser: 0
         runAsGroup: 0
-        fsGroup: 0      
+        fsGroup: 0
       containers:
       - name: nfs-ganesha
-        image: quay.io/ceph/ceph:v18.2.0
+        image: quay.io/ceph/nfs-ganesha:4.3
         imagePullPolicy: IfNotPresent
         command:
-        - /bin/bash
-        - -c
-        - |
-          set -e
-          echo "Preparing Ceph configuration..."
-          
-          # Create ceph.conf
-          cat > /etc/ceph/ceph.conf << EOF
-          [global]
-          fsid = $(cat /etc/ceph/fsid)
-          mon_host = $(cat /etc/ceph/mon_host)
-          auth_cluster_required = cephx
-          auth_service_required = cephx
-          auth_client_required = cephx
-          EOF
-          
-          # Create admin keyring for CephFS FSAL
-          cat > /etc/ceph/keyring << EOF
-          [client.admin]
-          key = $(cat /etc/ceph/admin_key)
-          caps mds = "allow *"
-          caps mon = "allow *"
-          caps osd = "allow *"
-          caps mgr = "allow *"
-          EOF
-          
-          echo "Starting NFS-Ganesha with CephFS FSAL..."
-          exec /usr/bin/ganesha.nfsd -F -f /etc/ganesha/ganesha.conf -N NIV_EVENT
+        - /usr/bin/ganesha.nfsd
+        args:
+        - -F
+        - -f
+        - /etc/ganesha/ganesha.conf
+        - -N
+        - NIV_EVENT
         ports:
         - name: nfs
           containerPort: 2049

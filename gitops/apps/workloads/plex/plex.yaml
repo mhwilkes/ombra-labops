@@ -77,12 +77,11 @@ spec:
             size: 10Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config            
-          media:
+              - path: /config              media:
             enabled: true
             type: nfs
-            server: nfs-ganesha.nfs-ganesha.svc.cluster.local
-            path: /media/media
+            server: rook-nfs-media.rook-ceph.svc.cluster.local
+            path: /media
             globalMounts:
               - path: /data/media  # TRASHGuides: Plex only needs access to media library
                 readOnly: true     # Plex should only read from media library
