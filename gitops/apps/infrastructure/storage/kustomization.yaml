@@ -1,9 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Set the default namespace for resources
-namespace: media-storage
-
 resources:
   # Deploy Ceph secrets (via Infisical) first
   - ceph-secrets.yaml
@@ -14,5 +11,4 @@ resources:
   # Create PVCs in each application namespace
   - namespace-pvcs.yaml
 
-# Note: Documentation is included in the repository but not deployed as ConfigMaps
-# to avoid namespace conflicts. Reference the markdown files directly.
+# Note: No default namespace set to avoid conflicts since resources go to different namespaces
