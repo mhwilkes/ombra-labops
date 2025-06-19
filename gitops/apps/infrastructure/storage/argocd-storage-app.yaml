@@ -9,9 +9,9 @@ metadata:
   labels:
     app: storage-infrastructure
 spec:
-  project: default
+  project: default  
   source:
-    repoURL: https://github.com/your-repo/ombra-labops  # Update with your repo
+    repoURL: https://github.com/mhwilkes/ombra-labops.git  # Updated with correct repo
     path: gitops/apps/infrastructure/storage
     targetRevision: HEAD
   destination:

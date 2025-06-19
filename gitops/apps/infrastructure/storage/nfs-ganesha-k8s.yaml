@@ -7,10 +7,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: nfs-ganesha
+  name: nfs-ganesha  
   labels:
     name: nfs-ganesha
     component: storage-infrastructure
+    "pod-security.kubernetes.io/enforce": "privileged"
+    "pod-security.kubernetes.io/audit": "privileged"
+    "pod-security.kubernetes.io/warn": "privileged"
 
 # ServiceAccount for NFS-Ganesha
 ---
@@ -162,8 +165,13 @@ spec:
             podAffinityTerm:
               labelSelector:
                 matchLabels:
-                  app: nfs-ganesha
-              topologyKey: kubernetes.io/hostname
+                  app: nfs-ganesha              
+                  topologyKey: kubernetes.io/hostname
+      # Security context for NFS-Ganesha - requires privileged access
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: nfs-ganesha
         image: quay.io/ceph/nfs-ganesha:4.3
@@ -187,12 +195,16 @@ spec:
         - name: GANESHA_OPTIONS
           value: "-L /dev/stdout -f /etc/ganesha/ganesha.conf -N NIV_EVENT"
         - name: GANESHA_EPOCH
-          value: ""
+          value: ""        
         securityContext:
+          privileged: true
           capabilities:
             add:
             - DAC_READ_SEARCH
             - SYS_RESOURCE
+            - SYS_ADMIN
+            - SETUID
+            - SETGID
         resources:
           requests:
             cpu: 100m
