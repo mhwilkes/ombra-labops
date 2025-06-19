@@ -78,12 +78,12 @@ metadata:
   namespace: nfs-ganesha
   labels:
     app: nfs-ganesha
-data:
+data:  
   ganesha.conf: |
-    # NFS-Ganesha configuration for CephFS export
+    # NFS-Ganesha configuration for CephFS export using CephFS FSAL
     EXPORT {
         Export_Id = 1;
-        Path = "/export/media";
+        Path = "/";
         Pseudo = "/media";
         Protocols = 4;
         Transports = TCP;
@@ -93,9 +93,13 @@ data:
         # Security - allow access from cluster network
         Sectype = sys;
         
-        # VFS FSAL for mounted CephFS
+        # CephFS FSAL for direct CephFS access
         FSAL {
-            Name = VFS;
+            Name = CEPH;
+            User_Id = "admin";
+            Secret_Access_Key = "/etc/ceph/keyring";
+            # Ceph configuration file path
+            Ceph_Conf = "/etc/ceph/ceph.conf";
         }
         
         # Allow access from Kubernetes pod network
@@ -112,13 +116,12 @@ data:
         MNT_Port = 20048;
         NFS_Protocols = 4;
         Nb_Worker = 16;
-    }
-      # Enable NFS v4
+    }      # Enable NFS v4
     NFSv4 {
         Minor_Versions = 1, 2;
         Delegations = true;
         RecoveryBackend = fs;
-        RecoveryRoot = "/export/recovery";
+        RecoveryRoot = "/var/lib/nfs/ganesha";
     }
     
     # Logging
@@ -171,13 +174,40 @@ spec:
       securityContext:
         runAsUser: 0
         runAsGroup: 0
-        fsGroup: 0
+        fsGroup: 0      
       containers:
       - name: nfs-ganesha
         image: quay.io/ceph/ceph:v18.2.0
         imagePullPolicy: IfNotPresent
-        command: ["ganesha.nfsd"]
-        args: ["-F", "-L", "/dev/stdout", "-f", "/etc/ganesha/ganesha.conf", "-N", "NIV_EVENT"]
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Preparing Ceph configuration..."
+          
+          # Create ceph.conf
+          cat > /etc/ceph/ceph.conf << EOF
+          [global]
+          fsid = $(cat /etc/ceph/fsid)
+          mon_host = $(cat /etc/ceph/mon_host)
+          auth_cluster_required = cephx
+          auth_service_required = cephx
+          auth_client_required = cephx
+          EOF
+          
+          # Create admin keyring for CephFS FSAL
+          cat > /etc/ceph/keyring << EOF
+          [client.admin]
+          key = $(cat /etc/ceph/admin_key)
+          caps mds = "allow *"
+          caps mon = "allow *"
+          caps osd = "allow *"
+          caps mgr = "allow *"
+          EOF
+          
+          echo "Starting NFS-Ganesha with CephFS FSAL..."
+          exec /usr/bin/ganesha.nfsd -F -f /etc/ganesha/ganesha.conf -N NIV_EVENT
         ports:
         - name: nfs
           containerPort: 2049
@@ -189,34 +219,36 @@ spec:
           containerPort: 111
           protocol: TCP
         - name: rpcbind-udp
-          containerPort: 111          
+          containerPort: 111
           protocol: UDP
+        volumeMounts:
+        - name: ganesha-config
+          mountPath: /etc/ganesha
+          readOnly: true
+        - name: ceph-secrets
+          mountPath: /etc/ceph
+          readOnly: true
+        - name: recovery-backend
+          mountPath: /var/lib/nfs/ganesha
+        - name: run
+          mountPath: /run
+        - name: var-lib-nfs
+          mountPath: /var/lib/nfs
         securityContext:
           privileged: true
+          runAsUser: 0
           capabilities:
             add:
-            - DAC_READ_SEARCH
-            - SYS_RESOURCE
             - SYS_ADMIN
-            - SETUID
-            - SETGID
+            - DAC_READ_SEARCH
+            - DAC_OVERRIDE
         resources:
           requests:
             cpu: 100m
             memory: 256Mi
           limits:
             cpu: 1000m
-            memory: 1Gi        
-        volumeMounts:
-        - name: ganesha-config
-          mountPath: /etc/ganesha
-          readOnly: true
-        - name: cephfs-export
-          mountPath: /export/media
-        - name: ganesha-export-root
-          mountPath: /export
-        - name: ganesha-recovery
-          mountPath: /export/recovery
+            memory: 1Gi
         livenessProbe:
           tcpSocket:
             port: 2049
@@ -231,12 +263,14 @@ spec:
       - name: ganesha-config
         configMap:
           name: nfs-ganesha-config
-      - name: cephfs-export
-        persistentVolumeClaim:
-          claimName: cephfs-media-export
-      - name: ganesha-export-root
+      - name: ceph-secrets
+        secret:
+          secretName: ceph-secret
+      - name: recovery-backend
         emptyDir: {}
-      - name: ganesha-recovery
+      - name: run
+        emptyDir: {}
+      - name: var-lib-nfs
         emptyDir: {}
 
 # LoadBalancer Service for NFS-Ganesha
