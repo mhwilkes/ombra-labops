@@ -1,5 +1,5 @@
-# Shared CephFS storage for all media applications
-# Single file containing all shared storage resources following TRASHGuides best practices
+# Fixed approach: Single PVC with subPath mounts for true shared storage
+# This is the most reliable way to share CephFS storage across namespaces
 
 # Media storage namespace for shared resources
 ---
@@ -39,7 +39,7 @@ metadata:
     name: downloads
     media-access: "downloads-media"
 
-# Master PVC that provisions the CephFS volume in media-storage namespace
+# Single master PVC - this is the only PVC that actually gets CephFS storage
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -58,132 +58,6 @@ spec:
     requests:
       storage: 2Ti  # Large shared volume for all media data
 
-# Wait for the master PVC to be bound, then create slave PVCs in other namespaces
-# These will be created by a separate Job after the master PVC is ready
-
-# Job to create slave PVCs that reference the same underlying PV
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: create-slave-pvcs
-  namespace: media-storage
-  labels:
-    app: shared-media
-    component: pvc-creator
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "1"  # Run after the master PVC is created
-spec:
-  ttlSecondsAfterFinished: 300
-  template:
-    spec:
-      serviceAccountName: pvc-creator
-      restartPolicy: OnFailure
-      containers:
-      - name: pvc-creator
-        image: bitnami/kubectl:1.28
-        command:
-        - /bin/bash
-        - -c
-        - |
-          echo "Waiting for master PVC to be bound..."
-          
-          # Wait for the master PVC to be bound
-          while true; do
-            STATUS=$(kubectl get pvc shared-media-data -n media-storage -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
-            if [ "$STATUS" = "Bound" ]; then
-              echo "Master PVC is bound, proceeding to create slave PVCs..."
-              break
-            elif [ "$STATUS" = "NotFound" ]; then
-              echo "Master PVC not found yet, waiting..."
-            else
-              echo "Master PVC status: $STATUS, waiting..."
-            fi
-            sleep 10
-          done
-          
-          # Get the PV name from the master PVC
-          PV_NAME=$(kubectl get pvc shared-media-data -n media-storage -o jsonpath='{.spec.volumeName}')
-          echo "Master PVC is bound to PV: $PV_NAME"
-          
-          # Create slave PVCs in each namespace
-          for NAMESPACE in plex arr downloads; do
-            echo "Creating slave PVC in namespace: $NAMESPACE"
-            
-            # Check if namespace exists, create if not
-            kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-            
-            # Create the slave PVC
-            cat <<EOF | kubectl apply -f -
-          apiVersion: v1
-          kind: PersistentVolumeClaim
-          metadata:
-            name: shared-media-data
-            namespace: $NAMESPACE
-            labels:
-              app: shared-media
-              component: storage
-              role: slave-pvc
-              access-pattern: "${NAMESPACE}-access"
-          spec:
-            accessModes:
-              - ReadWriteMany
-            storageClassName: ""  # Empty to use manual PV binding
-            volumeName: $PV_NAME  # Reference the same PV as master
-            resources:
-              requests:
-                storage: 2Ti
-          EOF
-            
-            if [ $? -eq 0 ]; then
-              echo "Successfully created slave PVC in $NAMESPACE"
-            else
-              echo "Failed to create slave PVC in $NAMESPACE"
-              exit 1
-            fi
-          done
-          
-          echo "All slave PVCs created successfully!"
-
----
-# ServiceAccount for the PVC creator job
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: pvc-creator
-  namespace: media-storage
-
----
-# ClusterRole with permissions to manage PVCs and namespaces
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: pvc-creator
-rules:
-- apiGroups: [""]
-  resources: ["persistentvolumeclaims", "persistentvolumes"]
-  verbs: ["get", "list", "create", "update", "patch"]
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["get", "list", "create"]
-
----
-# ClusterRoleBinding for the PVC creator
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: pvc-creator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: pvc-creator
-subjects:
-- kind: ServiceAccount
-  name: pvc-creator
-  namespace: media-storage
-
 # Initialize directory structure using ArgoCD PostSync hook
 ---
 apiVersion: batch/v1
@@ -197,7 +71,6 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "2"  # Run after slave PVCs are created
 spec:
   ttlSecondsAfterFinished: 300  # Clean up after 5 minutes
   template:
