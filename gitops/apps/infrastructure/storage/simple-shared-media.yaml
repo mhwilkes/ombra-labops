@@ -1,0 +1,83 @@
+# Simple shared CephFS storage that works reliably with ArgoCD
+# This creates a single PVC that applications can reference across namespaces
+
+# Media storage namespace for shared resources
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media-storage
+  labels:
+    name: media-storage
+    component: shared-storage
+
+# Single large PVC for all media applications
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-media-data
+  namespace: media-storage
+  labels:
+    app: shared-media
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteMany  # CephFS supports multiple pods reading/writing simultaneously
+  storageClassName: ceph-cephfs
+  resources:
+    requests:
+      storage: 2Ti  # Large shared volume for all media data
+
+# Initialize directory structure using ArgoCD PostSync hook
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: media-structure-init
+  namespace: media-storage
+  labels:
+    app: shared-media
+    component: init
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300  # Clean up after 5 minutes
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      containers:
+      - name: structure-init
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Creating TRASHGuides recommended directory structure..."
+          
+          # Create the recommended folder structure
+          mkdir -p /data/torrents/{movies,tv,music,books}
+          mkdir -p /data/usenet/incomplete
+          mkdir -p /data/usenet/complete/{movies,tv,music,books}
+          mkdir -p /data/media/{movies,tv,music,books}
+          mkdir -p /data/downloads  # General downloads folder
+          
+          echo "Setting proper permissions..."
+          find /data -type d -exec chmod 775 {} \;
+          chown -R 2000:2000 /data
+          
+          echo "Directory structure created successfully!"
+          echo "Final structure:"
+          find /data -type d | sort
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data
+      volumes:
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: shared-media-data

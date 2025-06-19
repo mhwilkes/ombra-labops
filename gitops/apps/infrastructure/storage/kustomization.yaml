@@ -6,10 +6,12 @@ resources:
   - ceph-secrets.yaml
   # Then deploy CSI drivers
   - ceph-csi.yaml
-  # Create shared media storage structure
-  - shared-media-pvc.yaml
-  # Create namespace-specific PVC references
-  - namespace-pvcs.yaml
+  # Create simple shared media storage - THIS IS THE RECOMMENDED APPROACH
+  - simple-shared-media.yaml
+
+# Alternative approaches (commented out):
+# - shared-media-pvc.yaml      # More complex version with multiple features
+# - namespace-pvcs.yaml        # Cross-namespace PVC references (may not work reliably)
 
 # Include documentation
 configMapGenerator:
@@ -17,3 +19,4 @@ configMapGenerator:
   files:
   - README-shared-media.md
   - EXAMPLES-application-updates.md
+  - USAGE-GUIDE.md
