@@ -1,6 +1,6 @@
 # Namespace-specific PVCs that all point to the same CephFS storage
-# Note: Namespaces are created by individual application deployments
-# This just creates the PVCs that applications will reference
+# These PVCs will be created in each application namespace
+# CephFS allows multiple PVCs to share the same underlying storage
 
 # Plex namespace PVC - for media library access
 ---
@@ -13,8 +13,6 @@ metadata:
     app: shared-media
     component: storage
     access-pattern: media-only
-  annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   accessModes:
     - ReadWriteMany
@@ -34,8 +32,6 @@ metadata:
     app: shared-media
     component: storage
     access-pattern: full-access
-  annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   accessModes:
     - ReadWriteMany
@@ -55,8 +51,6 @@ metadata:
     app: shared-media
     component: storage
     access-pattern: downloads-access
-  annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   accessModes:
     - ReadWriteMany

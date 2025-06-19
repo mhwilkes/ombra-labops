@@ -90,20 +90,20 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config
-          data:
+              - path: /config          data:
             enabled: true
             existingClaim: shared-media-data
             globalMounts:
               - path: /data
-          incomplete:
-            enabled: true
-            type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 50Gi
-            accessMode: ReadWriteOnce
-            globalMounts:
-              - path: /data/downloads/incomplete
+          # Remove separate incomplete volume - use shared storage structure instead
+          # incomplete:
+          #   enabled: true
+          #   type: persistentVolumeClaim
+          #   storageClass: ceph-rbd
+          #   size: 50Gi
+          #   accessMode: ReadWriteOnce
+          #   globalMounts:
+          #     - path: /data/downloads/incomplete
   destination:
     server: https://kubernetes.default.svc
     namespace: downloads

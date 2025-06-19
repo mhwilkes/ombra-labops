@@ -8,10 +8,8 @@ resources:
   - ceph-csi.yaml
   # Create simple shared media storage - THIS IS THE RECOMMENDED APPROACH
   - simple-shared-media.yaml
-
-# Alternative approaches (commented out):
-# - shared-media-pvc.yaml      # More complex version with multiple features
-# - namespace-pvcs.yaml        # Cross-namespace PVC references (may not work reliably)
+  # Create PVCs in each application namespace
+  - namespace-pvcs.yaml
 
 # Include documentation
 configMapGenerator:
@@ -20,3 +18,5 @@ configMapGenerator:
   - README-shared-media.md
   - EXAMPLES-application-updates.md
   - USAGE-GUIDE.md
+  - APP-CONFIGURATION.md
+  - DEPLOYMENT-SUMMARY.md

@@ -77,12 +77,12 @@ spec:
             size: 10Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config
-          media:
+              - path: /config          media:
             enabled: true
             existingClaim: shared-media-data
             globalMounts:
-              - path: /data
+              - path: /data/media  # TRASHGuides: Plex only needs access to media library
+                subPath: media     # Mount only the media subdirectory
           transcode:
             enabled: true
             type: emptyDir

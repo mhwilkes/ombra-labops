@@ -17,6 +17,8 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  dependsOn:
+  - storage  # Plex needs shared media storage
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -37,6 +39,8 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  dependsOn:
+  - storage  # Arr apps need shared media storage
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -57,6 +61,8 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  dependsOn:
+  - storage  # Download apps need shared media storage
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
