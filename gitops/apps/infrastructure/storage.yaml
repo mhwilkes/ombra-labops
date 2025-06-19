@@ -10,11 +10,12 @@ spec:
     targetRevision: HEAD
     path: gitops/apps/infrastructure/storage
   destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
+    server: https://kubernetes.default.svc  
+    syncPolicy:
     automated:
       prune: true
-      selfHeal: true    syncOptions:
+      selfHeal: true
+    syncOptions:
     - CreateNamespace=true
     - PruneLast=true  # Helps with cleanup of old resources
   dependsOn:
