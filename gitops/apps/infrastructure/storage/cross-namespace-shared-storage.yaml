@@ -1,5 +1,14 @@
-# Cross-namespace shared storage solution
-# Creates a single PV that multiple PVCs can reference across namespaces
+# DEPRECATED: Cross-namespace shared storage approach
+# This file is no longer used - replaced by direct NFS mounts in applications
+# 
+# The new approach:
+# 1. Deploy NFS-Ganesha (nfs-ganesha-k8s.yaml) 
+# 2. Mount NFS directly in each application (see NFS-MOUNT-EXAMPLES.md)
+# 3. No shared PVCs needed
+#
+# This file can be safely deleted after confirming NFS-based solution works.
+#
+# Original cross-namespace PVC approach (DEPRECATED):
 
 # Application namespaces
 ---

@@ -6,7 +6,10 @@ resources:
   - ceph-secrets.yaml
   # Then deploy CSI drivers
   - ceph-csi.yaml
-  # Create simple shared media storage - THIS IS THE RECOMMENDED APPROACH
-  - cross-namespace-shared-storage.yaml
+  # Deploy NFS-Ganesha in Kubernetes (depends on Ceph CSI)
+  - nfs-ganesha-k8s.yaml
+  # Create media namespaces and verification jobs
+  - nfs-shared-storage.yaml
 
 # Note: No default namespace set to avoid conflicts since resources go to different namespaces
+# Applications will mount NFS directly - no shared PVCs needed

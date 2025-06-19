@@ -92,9 +92,12 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config
+              - path: /config          
           data:
-            existingClaim: shared-media-data
+            enabled: true
+            type: nfs
+            server: nfs-ganesha.nfs-ganesha.svc.cluster.local
+            path: /media
             globalMounts:
               - path: /data
   destination:

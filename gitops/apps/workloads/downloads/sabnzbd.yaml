@@ -90,9 +90,12 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config          data:
+              - path: /config          
+          data:
             enabled: true
-            existingClaim: shared-media-data
+            type: nfs
+            server: nfs-ganesha.nfs-ganesha.svc.cluster.local
+            path: /media
             globalMounts:
               - path: /data
           # Remove separate incomplete volume - use shared storage structure instead

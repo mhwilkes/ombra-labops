@@ -1,0 +1,75 @@
+# ArgoCD Application for NFS-Ganesha based storage infrastructure
+# This ensures proper deployment order and dependency management
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storage-infrastructure
+  namespace: argocd
+  labels:
+    app: storage-infrastructure
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-repo/ombra-labops  # Update with your repo
+    path: gitops/apps/infrastructure/storage
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - RespectIgnoreDifferences=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  # Health checks for dependencies
+  ignoreDifferences:
+  - group: batch
+    kind: Job
+    jsonPointers:
+    - /spec/template/spec/containers/0/env
+
+---
+# Separate application for media workloads that depends on storage
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: media-workloads
+  namespace: argocd
+  labels:
+    app: media-workloads
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # Deploy after storage
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-repo/ombra-labops  # Update with your repo
+    path: gitops/apps/workloads
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - RespectIgnoreDifferences=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  # Wait for storage to be ready
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
