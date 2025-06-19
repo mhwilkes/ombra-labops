@@ -49,7 +49,8 @@ metadata:
     component: storage
 spec:
   capacity:
-    storage: 2Ti  accessModes:
+    storage: 2Ti
+  accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: shared-media-storage
