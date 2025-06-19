@@ -156,8 +156,7 @@ spec:
         app: nfs-ganesha
         component: nfs-server
     spec:
-      serviceAccountName: nfs-ganesha
-      # Ensure pods run on different nodes
+      serviceAccountName: nfs-ganesha      # Ensure pods run on different nodes
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -165,8 +164,8 @@ spec:
             podAffinityTerm:
               labelSelector:
                 matchLabels:
-                  app: nfs-ganesha              
-                  topologyKey: kubernetes.io/hostname
+                  app: nfs-ganesha
+              topologyKey: kubernetes.io/hostname
       # Security context for NFS-Ganesha - requires privileged access
       securityContext:
         runAsUser: 0
