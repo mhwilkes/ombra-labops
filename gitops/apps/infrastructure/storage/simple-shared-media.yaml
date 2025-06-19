@@ -1,5 +1,5 @@
-# Simple shared CephFS storage that works reliably with ArgoCD
-# This creates a single PVC that applications can reference across namespaces
+# Shared CephFS storage for all media applications
+# Single file containing all shared storage resources following TRASHGuides best practices
 
 # Media storage namespace for shared resources
 ---
@@ -10,6 +10,34 @@ metadata:
   labels:
     name: media-storage
     component: shared-storage
+
+# Application namespaces
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: plex
+  labels:
+    name: plex
+    media-access: "library-only"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arr
+  labels:
+    name: arr
+    media-access: "full-access"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: downloads
+  labels:
+    name: downloads
+    media-access: "downloads-media"
 
 # Single large PVC for all media applications
 ---
@@ -28,6 +56,63 @@ spec:
   resources:
     requests:
       storage: 2Ti  # Large shared volume for all media data
+
+# Plex namespace PVC - for media library access
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-media-data
+  namespace: plex
+  labels:
+    app: shared-media
+    component: storage
+    access-pattern: media-only
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ceph-cephfs
+  resources:
+    requests:
+      storage: 2Ti
+
+# Arr namespace PVC - for full media management access
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-media-data
+  namespace: arr
+  labels:
+    app: shared-media
+    component: storage
+    access-pattern: full-access
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ceph-cephfs
+  resources:
+    requests:
+      storage: 2Ti
+
+# Downloads namespace PVC - for download management
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-media-data
+  namespace: downloads
+  labels:
+    app: shared-media
+    component: storage
+    access-pattern: downloads-access
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ceph-cephfs
+  resources:
+    requests:
+      storage: 2Ti
 
 # Initialize directory structure using ArgoCD PostSync hook
 ---
