@@ -167,15 +167,17 @@ spec:
                 matchLabels:
                   app: nfs-ganesha
               topologyKey: kubernetes.io/hostname
-      # Security context for NFS-Ganesha - requires privileged access
+      # Security context for NFS-Ganesha - requires privileged access      
       securityContext:
         runAsUser: 0
         runAsGroup: 0
         fsGroup: 0
       containers:
       - name: nfs-ganesha
-        image: quay.io/ceph/nfs-ganesha:4.3
+        image: quay.io/ceph/ceph:v18.2.0
         imagePullPolicy: IfNotPresent
+        command: ["ganesha.nfsd"]
+        args: ["-F", "-L", "/dev/stdout", "-f", "/etc/ganesha/ganesha.conf", "-N", "NIV_EVENT"]
         ports:
         - name: nfs
           containerPort: 2049
@@ -187,15 +189,8 @@ spec:
           containerPort: 111
           protocol: TCP
         - name: rpcbind-udp
-          containerPort: 111
+          containerPort: 111          
           protocol: UDP
-        env:
-        - name: GANESHA_CONFIGFILE
-          value: "/etc/ganesha/ganesha.conf"
-        - name: GANESHA_OPTIONS
-          value: "-L /dev/stdout -f /etc/ganesha/ganesha.conf -N NIV_EVENT"
-        - name: GANESHA_EPOCH
-          value: ""        
         securityContext:
           privileged: true
           capabilities:
