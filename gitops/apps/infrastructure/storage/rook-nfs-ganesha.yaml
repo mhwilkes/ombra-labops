@@ -2,86 +2,27 @@
 # This provides native CephFS NFS exports using Rook operator
 # Replaces manual NFS-Ganesha deployment with CRD-based management
 
-# Rook Operator Namespace
+# Install Rook Operator using official Helm chart
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: rook-ceph
-  labels:
-    name: rook-ceph
-    component: rook-operator
-
-# Rook NFS Namespace
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: rook-nfs
-  labels:
-    name: rook-nfs
-    component: rook-nfs-system
-
-# Rook Operator Deployment
----
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: rook-ceph-operator
-  namespace: rook-ceph
-  labels:
-    operator: rook
-    storage-backend: ceph
+  namespace: argocd
 spec:
-  selector:
-    matchLabels:
-      app: rook-ceph-operator
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: rook-ceph-operator
-    spec:
-      serviceAccountName: rook-ceph-system
-      containers:
-      - name: rook-ceph-operator
-        image: rook/ceph:v1.14.11
-        args: ["ceph", "operator"]
-        env:
-        - name: ROOK_CURRENT_NAMESPACE_ONLY
-          value: "false"
-        - name: ROOK_ALLOW_MULTIPLE_FILESYSTEMS
-          value: "true"
-        - name: ROOK_LOG_LEVEL
-          value: "INFO"
-        - name: ROOK_CEPH_STATUS_CHECK_INTERVAL
-          value: "60s"
-        - name: ROOK_MON_HEALTHCHECK_INTERVAL
-          value: "45s"
-        - name: ROOK_MON_OUT_TIMEOUT
-          value: "600s"
-        - name: ROOK_DISCOVER_DEVICES_INTERVAL
-          value: "60m"
-        - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
-          value: "true"
-        - name: ROOK_ENABLE_SELINUX_RELABELING
-          value: "true"
-        - name: ROOK_ENABLE_FSGROUP
-          value: "true"
-        - name: ROOK_ENABLE_FLEX_DRIVER
-          value: "false"
-        - name: ROOK_ENABLE_DISCOVERY_DAEMON
-          value: "false"
-        - name: ROOK_ENABLE_MACHINE_DISRUPTION_BUDGET
-          value: "false"
-        - name: CSI_PROVISIONER_NODE_AFFINITY
-          value: "false"
-        - name: CSI_PROVISIONER_TOLERATIONS
-          value: ""
-        - name: CSI_PLUGIN_TOLERATIONS
-          value: ""
-        - name: ROOK_OBC_WATCH_OPERATOR_NAMESPACE
-          value: "true"
+  project: default
+  source:
+    repoURL: https://charts.rook.io/release
+    chart: rook-ceph
+    targetRevision: v1.14.11
+    helm:
+      values: |
+        # Rook operator configuration
+        image:
+          repository: rook/ceph
+          tag: v1.14.11
+        nodeSelector: {}
+        tolerations: []
         resources:
           limits:
             cpu: 500m
@@ -89,111 +30,131 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-
-# ServiceAccount for Rook Operator
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: rook-ceph-system
-  namespace: rook-ceph
-
-# ClusterRole for Rook Operator
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: rook-ceph-system
-rules:
-- apiGroups: [""]
-  resources: ["pods", "nodes", "nodes/proxy", "services", "endpoints", "persistentvolumes", "persistentvolumeclaims", "events", "configmaps", "secrets", "namespaces"]
-  verbs: ["get", "list", "watch", "patch", "create", "update", "delete"]
-- apiGroups: ["extensions", "apps"]
-  resources: ["daemonsets", "deployments", "replicasets"]
-  verbs: ["get", "list", "watch", "create", "update", "delete"]
-- apiGroups: ["batch"]
-  resources: ["jobs"]
-  verbs: ["get", "list", "watch", "create", "update", "delete"]
-- apiGroups: ["ceph.rook.io"]
-  resources: ["*"]
-  verbs: ["*"]
-- apiGroups: ["rook.io"]
-  resources: ["*"]
-  verbs: ["*"]
-- apiGroups: ["storage.k8s.io"]
-  resources: ["storageclasses", "csinodes", "csidrivers"]
-  verbs: ["get", "list", "watch", "create", "update", "delete"]
+        # Enable CRDs installation
+        crds:
+          enabled: true
+        # Monitoring configuration
+        monitoring:
+          enabled: false
+        # CSI configuration
+        csi:
+          enableRbdDriver: true
+          enableCephfsDriver: true
+          enableNFSSnapshotter: true
+        # Enable discovery daemon
+        enableDiscoveryDaemon: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Replace=true
 
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+# Wait for operator to be ready before deploying CephCluster
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: rook-ceph-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rook-ceph-system
-subjects:
-- kind: ServiceAccount
-  name: rook-ceph-system
-  namespace: rook-ceph
-
-# CephCluster pointing to existing external Ceph
----
-apiVersion: ceph.rook.io/v1
-kind: CephCluster
-metadata:
-  name: rook-ceph-external
-  namespace: rook-ceph
+  name: rook-ceph-cluster
+  namespace: argocd
 spec:
-  external:
-    enable: true
-  crashCollector:
-    disable: true
-  healthCheck:
-    daemonHealth:
-      mon:
-        disabled: false
-        interval: 45s
-      osd:
-        disabled: false
-        interval: 60s
-      status:
-        disabled: false
-        interval: 60s
-  # Use existing Ceph cluster
-  cephVersion:
-    image: quay.io/ceph/ceph:v18.2.0
+  project: default
+  source:
+    repoURL: https://charts.rook.io/release
+    chart: rook-ceph-cluster
+    targetRevision: v1.14.11
+    helm:
+      values: |
+        # External Ceph cluster configuration
+        operatorNamespace: rook-ceph
+        configOverride: |
+          [global]
+          osd_pool_default_size = 3
+          osd_pool_default_min_size = 2
+        cephClusterSpec:
+          external:
+            enable: true
+          crashCollector:
+            disable: true
+          healthCheck:
+            daemonHealth:
+              mon:
+                disabled: false
+                interval: 45s
+              osd:
+                disabled: false
+                interval: 60s
+              status:
+                disabled: false
+                interval: 60s
+          cephVersion:
+            image: quay.io/ceph/ceph:v18.2.0
+            allowUnsupported: false
+        # Ingress configuration
+        ingress:
+          dashboard:
+            enabled: false
+        # Monitoring configuration  
+        monitoring:
+          enabled: false
+          createPrometheusRules: false
+        # CSI configuration
+        cephBlockPools:
+        - name: ceph-blockpool
+          spec:
+            failureDomain: host
+            replicated:
+              size: 3
+          storageClass:
+            enabled: true
+            name: ceph-rbd
+            isDefault: false
+            reclaimPolicy: Retain
+            allowVolumeExpansion: true
+        cephFileSystems:
+        - name: media-filesystem
+          spec:
+            metadataPool:
+              replicated:
+                size: 3
+            dataPools:
+            - name: data0
+              replicated:
+                size: 3
+            preserveFilesystemOnDelete: true
+            metadataServer:
+              activeCount: 1
+              activeStandby: true
+              resources:
+                limits:
+                  cpu: 2000m
+                  memory: 4Gi
+                requests:
+                  cpu: 1000m
+                  memory: 4Gi
+          storageClass:
+            enabled: true
+            name: rook-cephfs
+            isDefault: false
+            reclaimPolicy: Retain
+            allowVolumeExpansion: true
+        cephObjectStores: []
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
 
-# CephFilesystem for NFS exports
 ---
-apiVersion: ceph.rook.io/v1
-kind: CephFilesystem
-metadata:
-  name: media-filesystem
-  namespace: rook-ceph
-spec:
-  metadataPool:
-    replicated:
-      size: 3
-  dataPools:
-  - name: data0
-    replicated:
-      size: 3
-  preserveFilesystemOnDelete: true
-  metadataServer:
-    activeCount: 1
-    activeStandby: true
-    resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
-      requests:
-        cpu: 1000m
-        memory: 4Gi
-
-# CephNFS for media exports using Rook
----
+# CephNFS for media exports
 apiVersion: ceph.rook.io/v1
 kind: CephNFS
 metadata:
@@ -201,7 +162,7 @@ metadata:
   namespace: rook-ceph
 spec:
   rados:
-    pool: myfs-metadata
+    pool: media-filesystem-metadata
     namespace: nfs-ganesha
   server:
     active: 2  # High availability
@@ -222,28 +183,8 @@ spec:
             - key: node-role.kubernetes.io/control-plane
               operator: DoesNotExist
 
-# StorageClass for CephFS (if not already exists)
 ---
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: rook-cephfs
-provisioner: rook-ceph.cephfs.csi.ceph.com
-parameters:
-  clusterID: rook-ceph-external
-  fsName: media-filesystem
-  pool: media-filesystem-data0
-  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
-  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
-  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
-  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
-  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
-  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
-reclaimPolicy: Retain
-allowVolumeExpansion: true
-
-# CephNFS Export for media content
----
+# CephFilesystemSubVolumeGroup for organizing NFS exports
 apiVersion: ceph.rook.io/v1
 kind: CephFilesystemSubVolumeGroup
 metadata:
@@ -251,159 +192,129 @@ metadata:
   namespace: rook-ceph
 spec:
   filesystemName: media-filesystem
+  pinning:
+    distributed: 1
 
-# PVC for media storage using Rook CephFS
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: rook-media-storage
-  namespace: rook-ceph
-  labels:
-    app: rook-nfs
-    component: media-storage
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: rook-cephfs
-  resources:
-    requests:
-      storage: 2Ti
-
-# LoadBalancer Service for Rook NFS
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rook-nfs-media-lb
-  namespace: rook-ceph
-  labels:
-    app: rook-nfs
-    component: load-balancer
-spec:
-  type: LoadBalancer
-  loadBalancerIP: 192.168.55.221  # Different IP from old setup
-  ports:
-  - name: nfs
-    port: 2049
-    targetPort: 2049
-    protocol: TCP
-  - name: mountd
-    port: 20048
-    targetPort: 20048
-    protocol: TCP
-  - name: rpcbind-tcp
-    port: 111
-    targetPort: 111
-    protocol: TCP
-  - name: rpcbind-udp
-    port: 111
-    targetPort: 111
-    protocol: UDP
-  selector:
-    app: rook-nfs-media-nfs
-    rook_nfs: media-nfs
-
-# ClusterIP Service for internal cluster access
----
+# Service for NFS access (ClusterIP for internal access)
 apiVersion: v1
 kind: Service
 metadata:
   name: rook-nfs-media
   namespace: rook-ceph
   labels:
-    app: rook-nfs
-    component: cluster-service
+    app: rook-nfs-media
 spec:
-  type: ClusterIP
+  selector:
+    app: rook-ceph-nfs
+    nfs_cluster: media-nfs
   ports:
   - name: nfs
     port: 2049
+    protocol: TCP
     targetPort: 2049
-    protocol: TCP
-  - name: mountd
-    port: 20048
-    targetPort: 20048
-    protocol: TCP
-  - name: rpcbind-tcp
+  - name: nfs-udp
+    port: 2049
+    protocol: UDP
+    targetPort: 2049
+  - name: rpcbind
     port: 111
-    targetPort: 111
     protocol: TCP
-  selector:
-    app: rook-nfs-media-nfs
-    rook_nfs: media-nfs
+    targetPort: 111
+  - name: rpcbind-udp
+    port: 111
+    protocol: UDP
+    targetPort: 111
+  type: ClusterIP
 
-# Directory structure initialization job for Rook NFS
 ---
+# LoadBalancer Service for external NFS access (optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-nfs-media-external
+  namespace: rook-ceph
+  labels:
+    app: rook-nfs-media-external
+spec:
+  selector:
+    app: rook-ceph-nfs
+    nfs_cluster: media-nfs
+  ports:
+  - name: nfs
+    port: 2049
+    protocol: TCP
+    targetPort: 2049
+  - name: nfs-udp
+    port: 2049
+    protocol: UDP
+    targetPort: 2049
+  - name: rpcbind
+    port: 111
+    protocol: TCP
+    targetPort: 111
+  - name: rpcbind-udp
+    port: 111
+    protocol: UDP
+    targetPort: 111
+  type: LoadBalancer
+  loadBalancerIP: 192.168.55.220  # Set your desired IP
+
+---
+# Job to initialize media directory structure
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: rook-nfs-media-structure-init
+  name: init-media-directories
   namespace: rook-ceph
-  labels:
-    app: rook-nfs
-    component: init
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-weight: "2"
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
-  ttlSecondsAfterFinished: 600
   template:
     spec:
       restartPolicy: OnFailure
       containers:
-      - name: structure-init
+      - name: init-dirs
         image: busybox:1.36
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
         command:
-        - /bin/sh
+        - sh
         - -c
         - |
-          echo "Creating TRASHGuides directory structure for Rook NFS export..."
+          set -e
+          echo "Creating media directory structure..."
           
-          # Wait for mount to be available
-          for i in {1..30}; do
-            if mountpoint -q /mnt/media; then
-              echo "✅ CephFS mount is ready"
-              break
-            fi
-            echo "⏳ Waiting for CephFS mount... (attempt $i/30)"
-            sleep 10
-          done
+          # Create main media directories
+          mkdir -p /media/downloads/{complete,incomplete,watch}
+          mkdir -p /media/media/{movies,tv,music,books}
+          mkdir -p /media/torrents/{movies,tv,music,books}
           
-          if ! mountpoint -q /mnt/media; then
-            echo "❌ CephFS mount not available after 5 minutes"
-            exit 1
-          fi
+          # Set permissions (assuming UID/GID 2000 for media apps)
+          chown -R 2000:2000 /media
+          chmod -R 755 /media
           
-          # Create the recommended folder structure
-          mkdir -p /mnt/media/torrents/{movies,tv,music,books}
-          mkdir -p /mnt/media/usenet/incomplete
-          mkdir -p /mnt/media/usenet/complete/{movies,tv,music,books}
-          mkdir -p /mnt/media/media/{movies,tv,music,books}
-          mkdir -p /mnt/media/downloads
-          
-          echo "Setting proper permissions..."
-          find /mnt/media -type d -exec chmod 775 {} \; 2>/dev/null || true
-          find /mnt/media -type d -exec chown 2000:2000 {} \; 2>/dev/null || true
-          
-          echo "Rook NFS export directory structure created successfully!"
-          echo "Final structure:"
-          find /mnt/media -type d 2>/dev/null | sort || echo "Structure created"
-          
-          # Create a test file to verify NFS functionality
-          echo "Rook NFS-Ganesha ready - $(date)" > /mnt/media/rook-nfs-ready.txt
-          chmod 664 /mnt/media/rook-nfs-ready.txt
-          chown 2000:2000 /mnt/media/rook-nfs-ready.txt
-          
-          echo "🎯 Rook NFS media storage initialization complete!"
+          echo "Media directory structure created successfully!"
+          ls -la /media/
         volumeMounts:
         - name: media-storage
-          mountPath: /mnt/media
+          mountPath: /media        securityContext:
+          runAsUser: 0  # Run as root to set ownership
+          runAsGroup: 0
+      securityContext:
+        fsGroup: 2000
       volumes:
       - name: media-storage
         persistentVolumeClaim:
-          claimName: rook-media-storage
+          claimName: media-cephfs-pvc
+
+---
+# PVC for media storage using CephFS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-cephfs-pvc
+  namespace: rook-ceph
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi  # Adjust size as needed
+  storageClassName: rook-cephfs
