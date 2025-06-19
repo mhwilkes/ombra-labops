@@ -154,9 +154,10 @@ spec:
     metadata:
       labels:
         app: nfs-ganesha
-        component: nfs-server
+        component: nfs-server    
     spec:
-      serviceAccountName: nfs-ganesha      # Ensure pods run on different nodes
+      serviceAccountName: nfs-ganesha
+      # Ensure pods run on different nodes
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
