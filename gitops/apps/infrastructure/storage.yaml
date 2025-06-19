@@ -14,8 +14,8 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
-    syncOptions:
+      selfHeal: true    syncOptions:
     - CreateNamespace=true
+    - PruneLast=true  # Helps with cleanup of old resources
   dependsOn:
   - secrets-management
