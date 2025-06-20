@@ -6,3 +6,5 @@ resources:
   - ceph-secrets.yaml
   # Then deploy CSI drivers
   - ceph-csi.yaml
+  # Finally deploy Rook NFS-Ganesha (better than standalone)
+  - rook-nfs-ganesha.yaml

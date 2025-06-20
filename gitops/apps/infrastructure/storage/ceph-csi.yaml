@@ -10,10 +10,11 @@ spec:
   project: default
   source:
     repoURL: https://ceph.github.io/csi-charts
-    chart: ceph-csi-rbd
+    chart: ceph-csi-rbd    
     targetRevision: 3.11.0
     helm:
-      values: |        # External Ceph cluster configuration
+      values: |
+        # External Ceph cluster configuration
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
@@ -110,9 +111,10 @@ spec:
   source:
     repoURL: https://ceph.github.io/csi-charts
     chart: ceph-csi-cephfs
-    targetRevision: 3.11.0
+    targetRevision: 3.11.0    
     helm:
-      values: |        # External Ceph cluster configuration for CephFS
+      values: |
+        # External Ceph cluster configuration for CephFS
         csiConfig:
           - clusterID: "ombra-ceph"
             monitors:
@@ -148,5 +150,5 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit: privileged        
         pod-security.kubernetes.io/warn: privileged

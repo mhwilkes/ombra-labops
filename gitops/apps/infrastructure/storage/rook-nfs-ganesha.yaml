@@ -1,0 +1,416 @@
+# Rook-based NFS-Ganesha deployment for Kubernetes cluster
+# This provides native CephFS NFS exports using Rook operator
+# Replaces manual NFS-Ganesha deployment with CRD-based management
+# Updated: 2025-06-19
+
+# Install Rook Operator using official Helm chart
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-ceph-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.rook.io/release
+    chart: rook-ceph    
+    targetRevision: v1.15.1
+    helm:
+      values: |
+        # Rook operator configuration
+        image:
+          repository: rook/ceph
+          tag: v1.15.1
+        nodeSelector: {}
+        tolerations: []
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        # Enable CRDs installation
+        crds:
+          enabled: true        
+        # Monitoring configuration
+        monitoring:
+          enabled: false
+        # CSI configuration
+        csi:
+          enableRbdDriver: true
+          enableCephfsDriver: true
+          enableNFSSnapshotter: true        
+        # Enable discovery daemon
+        enableDiscoveryDaemon: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+    syncOptions:
+    - CreateNamespace=true
+    - Replace=true
+
+---
+# Minimal CephCluster for external Proxmox Ceph connection (NFS-only)
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  external:
+    enable: true
+  # Disable components we don't need for NFS-only setup
+  crashCollector:
+    disable: true
+  cephBlockPools: []     # No RBD pools needed
+  cephFileSystems: []    # Will reference external CephFS
+  cephObjectStores: []   # No object storage needed
+  cleanupPolicy:
+    confirmation: ""
+    allowUninstallWithVolumes: false
+  dataDirHostPath: /var/lib/rook
+  # Minimal health checks for external cluster
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 60s
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2.0
+    allowUnsupported: false
+  # Skip dashboard and monitoring for minimal setup
+  dashboard:
+    enabled: false
+  monitoring:
+    enabled: false
+
+---
+# Storage Classes for External Ceph Cluster (Proxmox)
+# These connect to existing pools in your Proxmox Ceph cluster
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-rbd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2.5"
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  pool: rbd  # Use existing RBD pool name from Proxmox
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# CephFS Storage Class for External Cluster  
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-cephfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "2.5"
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: cephfs  # Use existing CephFS name from Proxmox (adjust if different)
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# Reference to external CephFS from Proxmox cluster
+# This doesn't create a new filesystem, just references the existing one
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: cephfs
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "2.5"
+spec:
+  # External filesystem - don't create new pools
+  metadataPool:
+    replicated:
+      size: 0  # Use existing external pool
+  dataPools: []  # Use existing external pools
+  # Disable MDS since we're using external
+  metadataServer:
+    activeCount: 0
+    activeStandby: false
+
+---
+# CephNFS for media exports (deployed after cluster is ready)
+apiVersion: ceph.rook.io/v1
+kind: CephNFS
+metadata:
+  name: media-nfs
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  rados:
+    pool: cephfs_metadata  # Use existing CephFS metadata pool from Proxmox
+    namespace: nfs-ganesha
+  server:
+    active: 2  # High availability
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    logLevel: INFO
+    # Ceph 19.x NFS Ganesha configuration
+    config:
+      EXPORT_DEFAULTS:
+        Access_Type: RW
+        Squash: No_root_squash
+        Pseudo: "/"
+        Protocols: 4
+        Transports: TCP
+        Fsal:
+          Name: CEPH
+    # Placement on worker nodes
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: DoesNotExist
+
+---
+# CephFilesystemSubVolumeGroup for organizing NFS exports
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystemSubVolumeGroup
+metadata:
+  name: media-subvolume-group
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  filesystemName: cephfs  # Use existing CephFS name from Proxmox
+  pinning:
+    distributed: 1
+
+---
+# Service for NFS access (ClusterIP for internal access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-nfs-media
+  namespace: rook-ceph
+  labels:
+    app: rook-nfs-media
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  selector:
+    app: rook-ceph-nfs
+    nfs_cluster: media-nfs
+  ports:
+  - name: nfs
+    port: 2049
+    protocol: TCP
+    targetPort: 2049
+  - name: nfs-udp
+    port: 2049
+    protocol: UDP
+    targetPort: 2049
+  - name: rpcbind
+    port: 111
+    protocol: TCP
+    targetPort: 111
+  - name: rpcbind-udp
+    port: 111
+    protocol: UDP
+    targetPort: 111
+  type: ClusterIP
+
+---
+# LoadBalancer Service for external NFS access (optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-nfs-media-external
+  namespace: rook-ceph
+  labels:
+    app: rook-nfs-media-external
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  selector:
+    app: rook-ceph-nfs
+    nfs_cluster: media-nfs
+  ports:
+  - name: nfs
+    port: 2049
+    protocol: TCP
+    targetPort: 2049
+  - name: nfs-udp
+    port: 2049
+    protocol: UDP
+    targetPort: 2049
+  - name: rpcbind
+    port: 111
+    protocol: TCP
+    targetPort: 111
+  - name: rpcbind-udp
+    port: 111
+    protocol: UDP
+    targetPort: 111  
+  type: LoadBalancer
+  # loadBalancerIP: 192.168.55.220  # Disabled to avoid conflict with legacy NFS
+
+---
+# Service to expose Rook NFS-Ganesha externally
+# This provides the LoadBalancer IP that media workloads will use
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-nfs-external
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app: rook-ceph-nfs-media-nfs
+spec:
+  selector:
+    app: rook-ceph-nfs-media-nfs  # Rook's default label for CephNFS pods
+    nfs_cluster: media-nfs
+  ports:
+  - name: nfs
+    port: 2049
+    protocol: TCP
+    targetPort: 2049
+  - name: mountd
+    port: 20048
+    protocol: TCP
+    targetPort: 20048
+  - name: rpcbind
+    port: 111
+    protocol: TCP
+    targetPort: 111
+  type: LoadBalancer
+  loadBalancerIP: 192.168.55.221  # IP for media workloads to mount NFS
+
+---
+# ClusterIP Service for internal cluster access
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-nfs-internal
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app: rook-ceph-nfs-media-nfs
+spec:
+  selector:
+    app: rook-ceph-nfs-media-nfs
+    nfs_cluster: media-nfs
+  ports:
+  - name: nfs
+    port: 2049
+    protocol: TCP
+    targetPort: 2049
+  - name: mountd
+    port: 20048
+    protocol: TCP
+    targetPort: 20048
+  - name: rpcbind
+    port: 111
+    protocol: TCP
+    targetPort: 111
+  type: ClusterIP
+
+---
+# Job to initialize media directory structure
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-media-directories
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-dirs
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          echo "Creating media directory structure..."
+          
+          # Create main media directories
+          mkdir -p /media/downloads/{complete,incomplete,watch}
+          mkdir -p /media/media/{movies,tv,music,books}
+          mkdir -p /media/torrents/{movies,tv,music,books}
+          
+          # Set permissions (assuming UID/GID 2000 for media apps)
+          chown -R 2000:2000 /media
+          chmod -R 755 /media
+          
+          echo "Media directory structure created successfully!"
+          ls -la /media/        
+        volumeMounts:
+        - name: media-storage
+          mountPath: /media
+        securityContext:
+          runAsUser: 0  # Run as root to set ownership
+          runAsGroup: 0
+      securityContext:
+        fsGroup: 2000
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: media-cephfs-pvc
+
+---
+# PVC for media storage using CephFS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-cephfs-pvc
+  namespace: rook-ceph
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi  # Adjust size as needed
+  storageClassName: rook-cephfs
