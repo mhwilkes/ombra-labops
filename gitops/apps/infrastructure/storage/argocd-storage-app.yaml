@@ -1,4 +1,4 @@
-# ArgoCD Application for NFS-Ganesha based storage infrastructure
+# ArgoCD Application for Rook-based storage infrastructure
 # This ensures proper deployment order and dependency management
 
 apiVersion: argoproj.io/v1alpha1
@@ -51,7 +51,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-repo/ombra-labops  # Update with your repo
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
     path: gitops/apps/workloads
     targetRevision: HEAD
   destination:
@@ -68,8 +68,10 @@ spec:
       backoff:
         duration: 5s
         factor: 2
-        maxDuration: 3m
-  # Wait for storage to be ready
+        maxDuration: 3m  # Wait for storage to be ready
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true

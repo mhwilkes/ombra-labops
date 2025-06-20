@@ -33,15 +33,16 @@ spec:
             memory: 128Mi
         # Enable CRDs installation
         crds:
-          enabled: true
+          enabled: true        
         # Monitoring configuration
         monitoring:
-          enabled: false        # CSI configuration
+          enabled: false
+        # CSI configuration
         csi:
           enableRbdDriver: true
           enableCephfsDriver: true
-          enableNFSSnapshotter: true
-        # Enable discovery daemon        
+          enableNFSSnapshotter: true        
+        # Enable discovery daemon
         enableDiscoveryDaemon: false
   destination:
     server: https://kubernetes.default.svc
@@ -147,11 +148,11 @@ spec:
             isDefault: false
             reclaimPolicy: Retain
             allowVolumeExpansion: true
-        cephObjectStores: []
+        cephObjectStores: []  
   destination:
     server: https://kubernetes.default.svc
-    namespace: rook-ceph  
-    syncPolicy:
+    namespace: rook-ceph
+  syncPolicy:
     automated:
       prune: true
       selfHeal: true
