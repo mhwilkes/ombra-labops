@@ -10,6 +10,8 @@ kind: Application
 metadata:
   name: rook-ceph-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
@@ -67,6 +69,8 @@ kind: Application
 metadata:
   name: rook-ceph-cluster
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -165,12 +169,14 @@ spec:
     - CreateNamespace=true
 
 ---
-# CephNFS for media exports
+# CephNFS for media exports (deployed after cluster is ready)
 apiVersion: ceph.rook.io/v1
 kind: CephNFS
 metadata:
   name: media-nfs
   namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   rados:
     pool: media-filesystem-metadata
@@ -201,6 +207,8 @@ kind: CephFilesystemSubVolumeGroup
 metadata:
   name: media-subvolume-group
   namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   filesystemName: media-filesystem
   pinning:
@@ -215,6 +223,8 @@ metadata:
   namespace: rook-ceph
   labels:
     app: rook-nfs-media
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   selector:
     app: rook-ceph-nfs
@@ -247,6 +257,8 @@ metadata:
   namespace: rook-ceph
   labels:
     app: rook-nfs-media-external
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   selector:
     app: rook-ceph-nfs
@@ -268,7 +280,7 @@ spec:
     port: 111
     protocol: UDP
     targetPort: 111  
-    type: LoadBalancer
+  type: LoadBalancer
   # loadBalancerIP: 192.168.55.220  # Disabled to avoid conflict with legacy NFS
 
 ---
@@ -278,6 +290,8 @@ kind: Job
 metadata:
   name: init-media-directories
   namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   template:
     spec:

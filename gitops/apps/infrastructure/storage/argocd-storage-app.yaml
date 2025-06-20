@@ -15,8 +15,7 @@ spec:
     path: gitops/apps/infrastructure/storage
     targetRevision: HEAD
   destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
+    server: https://kubernetes.default.svc  syncPolicy:
     automated:
       prune: true
       selfHeal: true
@@ -24,6 +23,8 @@ spec:
     - CreateNamespace=true
     - RespectIgnoreDifferences=true
     - ApplyOutOfSyncOnly=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
     retry:
       limit: 5
       backoff:
