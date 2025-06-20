@@ -52,8 +52,8 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
-    managedNamespaceMetadata:
+      selfHeal: true    
+      managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
@@ -61,50 +61,6 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - Replace=true
-
----
-# External cluster connection secrets (using Infisical)
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-  labels:
-    name: rook-ceph
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-
----
-# Infisical Secret for Rook external cluster access
-apiVersion: secrets.infisical.com/v1alpha1
-kind: InfisicalSecret
-metadata:
-  name: rook-ceph-external-secret
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-spec:
-  secretsPath: "/ceph"
-  projectId: "f492c339-2822-40bd-84cb-6f32326a3a38"
-  envSlug: "prod"
-  secretType: Opaque
-  resyncInterval: 60
-  managedSecretReference:
-    secretName: rook-ceph-mon
-    secretNamespace: rook-ceph
-    creationPolicy: "Owner"
-  authentication:
-    universalAuth:
-      secretsScope:
-        projectId: "f492c339-2822-40bd-84cb-6f32326a3a38"
-        projectSlug: "ombra-mi-wk"
-        envSlug: "prod"
-        secretsPath: "/ceph"
-      credentialsRef:
-        secretName: infisical-universal-auth
-        secretNamespace: infisical-operator-system
 
 ---
 # ConfigMap for external cluster configuration
