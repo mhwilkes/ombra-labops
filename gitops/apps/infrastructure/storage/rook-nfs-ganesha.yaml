@@ -290,4 +290,4 @@ spec:
   resources:
     requests:
       storage: 100Gi  # Adjust size as needed
-  storageClassName: rook-cephfs
+  storageClassName: ceph-cephfs
