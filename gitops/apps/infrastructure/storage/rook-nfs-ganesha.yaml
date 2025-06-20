@@ -228,47 +228,6 @@ spec:
     distributed: 1
 
 ---
-# NFS Export for media directory
-apiVersion: ceph.rook.io/v1
-kind: CephNFSExport
-metadata:
-  name: media-export
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  nfsCluster: media-nfs
-  exportSpec:
-    exportId: 1
-    path: /media
-    pseudo: /media
-    access_type: RW
-    squash: no_root_squash
-    protocols:
-      - 4
-    transports:
-      - TCP    
-    fsal:
-      name: CEPH
-      filesystem: pve
-      path: /volumes/media-subvolume-group/media-share
-    clients: []  # Allow access from any client
-
----
-# Subvolume for media NFS share
-apiVersion: ceph.rook.io/v1
-kind: CephFilesystemSubVolume
-metadata:
-  name: media-share
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-spec:
-  filesystemName: pve
-  subVolumeGroupName: media-subvolume-group
-  size: "100Gi"  # Adjust as needed
-
----
 # Service to expose Rook NFS-Ganesha externally via MetalLB
 # This provides the LoadBalancer IP that media workloads will use
 apiVersion: v1
@@ -331,70 +290,39 @@ spec:
   - name: rpcbind
     port: 111
     protocol: TCP
-    targetPort: 111
-  type: ClusterIP
+    targetPort: 111  
+    type: ClusterIP
 
 ---
-# Job to initialize media directory structure
-apiVersion: batch/v1
-kind: Job
+# ConfigMap with NFS export configuration
+# Note: In Rook v1.15.1, NFS exports are typically configured via ConfigMap
+# and mounted into the NFS-Ganesha pods, or managed externally
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: init-media-directories
+  name: nfs-ganesha-config
   namespace: rook-ceph
   annotations:
     argocd.argoproj.io/sync-wave: "5"
-spec:
-  template:
-    spec:
-      restartPolicy: OnFailure
-      containers:
-      - name: init-dirs
-        image: busybox:1.36
-        command:
-        - sh
-        - -c
-        - |
-          set -e
-          echo "Creating media directory structure..."
-          
-          # Create main media directories
-          mkdir -p /media/downloads/{complete,incomplete,watch}
-          mkdir -p /media/media/{movies,tv,music,books}
-          mkdir -p /media/torrents/{movies,tv,music,books}
-          
-          # Set permissions (assuming UID/GID 2000 for media apps)
-          chown -R 2000:2000 /media
-          chmod -R 755 /media
-          
-          echo "Media directory structure created successfully!"
-          ls -la /media/        
-        volumeMounts:
-        - name: media-storage
-          mountPath: /media
-        securityContext:
-          runAsUser: 0  # Run as root to set ownership
-          runAsGroup: 0
-      securityContext:
-        fsGroup: 2000
-      volumes:
-      - name: media-storage
-        persistentVolumeClaim:
-          claimName: media-cephfs-pvc
-
----
-# PVC for media storage using CephFS subvolume
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: media-cephfs-pvc
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Gi  # Should match subvolume size
-  storageClassName: ceph-cephfs
-  volumeMode: Filesystem
+data:
+  ganesha.conf: |
+    EXPORT
+    {
+        Export_Id = 1;
+        Path = /;
+        Pseudo = /media;
+        Access_Type = RW;
+        Squash = no_root_squash;
+        Protocols = 4;
+        Transports = TCP;
+        FSAL {
+            Name = CEPH;
+            Filesystem = "pve";
+            User_Id = "admin";
+            Secret_Access_Key = "";
+        }
+        CLIENT {
+            Clients = *;
+            Access_Type = RW;
+        }
+    }
