@@ -45,7 +45,7 @@ spec:
           enableCephfsDriver: true
           enableNFSSnapshotter: true        
         # Enable discovery daemon
-        enableDiscoveryDaemon: false
+        enableDiscoveryDaemon: false  
   destination:
     server: https://kubernetes.default.svc
     namespace: rook-ceph
@@ -63,7 +63,116 @@ spec:
     - Replace=true
 
 ---
-# Minimal CephCluster for external Proxmox Ceph connection (NFS-only)
+# External cluster connection secrets (using Infisical)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    name: rook-ceph
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+
+---
+# Infisical Secret for Rook external cluster access
+apiVersion: secrets.infisical.com/v1alpha1
+kind: InfisicalSecret
+metadata:
+  name: rook-ceph-external-secret
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  secretsPath: "/ceph"
+  projectId: "f492c339-2822-40bd-84cb-6f32326a3a38"
+  envSlug: "prod"
+  secretType: Opaque
+  resyncInterval: 60
+  managedSecretReference:
+    secretName: rook-ceph-mon
+    secretNamespace: rook-ceph
+    creationPolicy: "Owner"
+  authentication:
+    universalAuth:
+      secretsScope:
+        projectId: "f492c339-2822-40bd-84cb-6f32326a3a38"
+        projectSlug: "ombra-mi-wk"
+        envSlug: "prod"
+        secretsPath: "/ceph"
+      credentialsRef:
+        secretName: infisical-universal-auth
+        secretNamespace: infisical-operator-system
+
+---
+# ConfigMap for external cluster configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-mon-endpoints
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  data: "pve-r640-01=192.168.40.60:6789,pve-r740xd-01=192.168.40.61:6789,pve-r740xd-02=192.168.40.62:6789"
+  mapping: |
+    {
+      "node": {
+        "pve-r640-01": {
+          "Name": "pve-r640-01",
+          "Addrs": {
+            "addrvec": [
+              {
+                "addr": "192.168.40.60:6789",
+                "nonce": 0,
+                "type": "legacy"
+              }
+            ]
+          }
+        },
+        "pve-r740xd-01": {
+          "Name": "pve-r740xd-01", 
+          "Addrs": {
+            "addrvec": [
+              {
+                "addr": "192.168.40.61:6789",
+                "nonce": 0,
+                "type": "legacy"
+              }
+            ]
+          }
+        },
+        "pve-r740xd-02": {
+          "Name": "pve-r740xd-02",
+          "Addrs": {
+            "addrvec": [
+              {
+                "addr": "192.168.40.62:6789", 
+                "nonce": 0,
+                "type": "legacy"
+              }
+            ]
+          }
+        }
+      }
+    }  maxMonId: "2"
+
+---
+# ConfigMap for cluster ID
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-cluster-info
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  cluster-id: "310985e9-91ef-4f2f-a6e6-89327b2a8b1d"  # FSID from your ceph.conf
+
+---
+# CephCluster for external Proxmox Ceph connection
 apiVersion: ceph.rook.io/v1
 kind: CephCluster
 metadata:
@@ -74,17 +183,17 @@ metadata:
 spec:
   external:
     enable: true
-  # Disable components we don't need for NFS-only setup
+  # Disable components we don't need since we're using external cluster
   crashCollector:
     disable: true
-  cephBlockPools: []     # No RBD pools needed
-  cephFileSystems: []    # Will reference external CephFS
-  cephObjectStores: []   # No object storage needed
+  cephBlockPools: []     # Managed by external cluster
+  cephFileSystems: []    # Managed by external cluster  
+  cephObjectStores: []   # Not needed for NFS setup
   cleanupPolicy:
     confirmation: ""
     allowUninstallWithVolumes: false
   dataDirHostPath: /var/lib/rook
-  # Minimal health checks for external cluster
+  # Health checks for external cluster
   healthCheck:
     daemonHealth:
       mon:
@@ -100,13 +209,21 @@ spec:
     enabled: false
 
 ---
-# NOTE: StorageClasses are already created by the ceph-csi.yaml
-# We don't need to recreate them here for external clusters
-
----
-# NOTE: For external Ceph clusters, we don't create CephFilesystem resources
-# The filesystem already exists in your Proxmox Ceph cluster
-# Rook will discover it automatically when connecting to the external cluster
+# CephFilesystem reference for external filesystem
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: pve  # This matches your external filesystem name from MDS config
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  # For external clusters, we just need to reference the existing filesystem
+  preserveFilesystemOnDelete: true
+  metadataServer:
+    activeCount: 0  # External cluster manages MDS
+    activeStandby: false
+  dataPools: []  # External cluster manages pools
 
 ---
 # CephNFS for media exports (deployed after cluster is ready)
@@ -131,16 +248,6 @@ spec:
         cpu: 500m
         memory: 1Gi
     logLevel: INFO
-    # Ceph 19.x NFS Ganesha configuration
-    config:
-      EXPORT_DEFAULTS:
-        Access_Type: RW
-        Squash: No_root_squash
-        Pseudo: "/"
-        Protocols: 4
-        Transports: TCP
-        Fsal:
-          Name: CEPH
     # Placement on worker nodes
     placement:
       nodeAffinity:
@@ -160,9 +267,50 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
-  filesystemName: cephfs  # Use existing CephFS name from Proxmox
+  filesystemName: pve  # Use existing CephFS name from Proxmox
   pinning:
     distributed: 1
+
+---
+# NFS Export for media directory
+apiVersion: ceph.rook.io/v1
+kind: CephNFSExport
+metadata:
+  name: media-export
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  nfsCluster: media-nfs
+  exportSpec:
+    exportId: 1
+    path: /media
+    pseudo: /media
+    access_type: RW
+    squash: no_root_squash
+    protocols:
+      - 4
+    transports:
+      - TCP    
+    fsal:
+      name: CEPH
+      filesystem: pve
+      path: /volumes/media-subvolume-group/media-share
+    clients: []  # Allow access from any client
+
+---
+# Subvolume for media NFS share
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystemSubVolume
+metadata:
+  name: media-share
+  namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  filesystemName: pve
+  subVolumeGroupName: media-subvolume-group
+  size: "100Gi"  # Adjust as needed
 
 ---
 # Service to expose Rook NFS-Ganesha externally via MetalLB
@@ -278,16 +426,19 @@ spec:
           claimName: media-cephfs-pvc
 
 ---
-# PVC for media storage using CephFS
+# PVC for media storage using CephFS subvolume
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: media-cephfs-pvc
   namespace: rook-ceph
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   accessModes:
   - ReadWriteMany
   resources:
     requests:
-      storage: 100Gi  # Adjust size as needed
+      storage: 100Gi  # Should match subvolume size
   storageClassName: ceph-cephfs
+  volumeMode: Filesystem
