@@ -100,71 +100,13 @@ spec:
     enabled: false
 
 ---
-# Storage Classes for External Ceph Cluster (Proxmox)
-# These connect to existing pools in your Proxmox Ceph cluster
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: ceph-rbd
-  annotations:
-    argocd.argoproj.io/sync-wave: "2.5"
-provisioner: rook-ceph.rbd.csi.ceph.com
-parameters:
-  clusterID: rook-ceph
-  pool: rbd  # Use existing RBD pool name from Proxmox
-  imageFormat: "2"
-  imageFeatures: layering
-  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
-  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
-  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
-  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
-  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
-  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
-  csi.storage.k8s.io/fstype: ext4
-allowVolumeExpansion: true
-reclaimPolicy: Retain
+# NOTE: StorageClasses are already created by the ceph-csi.yaml
+# We don't need to recreate them here for external clusters
 
 ---
-# CephFS Storage Class for External Cluster  
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: rook-cephfs
-  annotations:
-    argocd.argoproj.io/sync-wave: "2.5"
-provisioner: rook-ceph.cephfs.csi.ceph.com
-parameters:
-  clusterID: rook-ceph
-  fsName: cephfs  # Use existing CephFS name from Proxmox (adjust if different)
-  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
-  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
-  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
-  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
-  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
-  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
-allowVolumeExpansion: true
-reclaimPolicy: Retain
-
----
-# Reference to external CephFS from Proxmox cluster
-# This doesn't create a new filesystem, just references the existing one
-apiVersion: ceph.rook.io/v1
-kind: CephFilesystem
-metadata:
-  name: cephfs
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "2.5"
-spec:
-  # External filesystem - don't create new pools
-  metadataPool:
-    replicated:
-      size: 0  # Use existing external pool
-  dataPools: []  # Use existing external pools
-  # Disable MDS since we're using external
-  metadataServer:
-    activeCount: 0
-    activeStandby: false
+# NOTE: For external Ceph clusters, we don't create CephFilesystem resources
+# The filesystem already exists in your Proxmox Ceph cluster
+# Rook will discover it automatically when connecting to the external cluster
 
 ---
 # CephNFS for media exports (deployed after cluster is ready)
