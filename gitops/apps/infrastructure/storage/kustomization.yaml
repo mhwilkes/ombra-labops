@@ -4,11 +4,12 @@ kind: Kustomization
 resources:
   # Deploy Ceph secrets (via Infisical) first
   - ceph-secrets.yaml
+  # Then deploy CSI drivers
+  - ceph-csi.yaml
   
   # Rook-based NFS (production solution)
   - rook-nfs-ganesha.yaml
   
-
 
 # Note: Uses Rook operator for native CephFS NFS exports
 # Media applications will mount: rook-nfs-media.rook-ceph.svc.cluster.local

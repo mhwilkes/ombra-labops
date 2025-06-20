@@ -76,9 +76,10 @@ spec:
   source:
     repoURL: https://charts.rook.io/release
     chart: rook-ceph-cluster
-    targetRevision: v1.15.1
+    targetRevision: v1.15.1    
     helm:
-      values: |        # External Ceph cluster configuration
+      values: |
+        # External Ceph cluster configuration
         operatorNamespace: rook-ceph
         configOverride: |
           [global]
@@ -100,8 +101,7 @@ spec:
               iteration: 1
             allowUninstallWithVolumes: false
           healthCheck:
-            daemonHealth:
-              mon:
+            daemonHealth:              mon:
                 disabled: false
                 interval: 45s
               osd:
@@ -109,7 +109,8 @@ spec:
                 interval: 60s
               status:
                 disabled: false
-                interval: 60s          cephVersion:
+                interval: 60s
+          cephVersion:
             image: quay.io/ceph/ceph:v19.2.0
             allowUnsupported: false
         # Ingress configuration
@@ -119,48 +120,10 @@ spec:
         # Monitoring configuration  
         monitoring:
           enabled: false
-          createPrometheusRules: false
-        # CSI configuration
-        cephBlockPools:
-        - name: ceph-blockpool
-          spec:
-            failureDomain: host
-            replicated:
-              size: 3
-          storageClass:
-            enabled: true
-            name: ceph-rbd
-            isDefault: false
-            reclaimPolicy: Retain
-            allowVolumeExpansion: true
-        cephFileSystems:
-        - name: media-filesystem
-          spec:
-            metadataPool:
-              replicated:
-                size: 3
-            dataPools:
-            - name: data0
-              replicated:
-                size: 3
-            preserveFilesystemOnDelete: true
-            metadataServer:
-              activeCount: 1
-              activeStandby: true
-              resources:
-                limits:
-                  cpu: 2000m
-                  memory: 4Gi
-                requests:
-                  cpu: 1000m
-                  memory: 4Gi
-          storageClass:
-            enabled: true
-            name: rook-cephfs
-            isDefault: false
-            reclaimPolicy: Retain
-            allowVolumeExpansion: true
-        cephObjectStores: []  
+          createPrometheusRules: false        # External cluster - don't create pools/filesystems, use existing ones from Proxmox
+        cephBlockPools: []  # Use existing RBD pools from Proxmox
+        cephFileSystems: []  # Use existing CephFS from Proxmox
+        cephObjectStores: []
   destination:
     server: https://kubernetes.default.svc
     namespace: rook-ceph
@@ -173,8 +136,53 @@ spec:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
-    syncOptions:
-    - CreateNamespace=true
+    syncOptions:    - CreateNamespace=true
+
+---
+# Storage Classes for External Ceph Cluster (Proxmox)
+# These connect to existing pools in your Proxmox Ceph cluster
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-rbd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2.5"
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  pool: rbd  # Use existing RBD pool name from Proxmox
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# CephFS Storage Class for External Cluster  
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-cephfs
+  annotations:
+    argocd.argoproj.io/sync-wave: "2.5"
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: cephfs  # Use existing CephFS name from Proxmox (adjust if different)
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+allowVolumeExpansion: true
+reclaimPolicy: Retain
 
 ---
 # CephNFS for media exports (deployed after cluster is ready)
@@ -187,7 +195,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   rados:
-    pool: media-filesystem-metadata
+    pool: cephfs_metadata  # Use existing CephFS metadata pool from Proxmox
     namespace: nfs-ganesha
   server:
     active: 2  # High availability
@@ -228,7 +236,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
-  filesystemName: media-filesystem
+  filesystemName: cephfs  # Use existing CephFS name from Proxmox
   pinning:
     distributed: 1
 
