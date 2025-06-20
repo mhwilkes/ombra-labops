@@ -16,14 +16,14 @@ spec:
   project: default
   source:
     repoURL: https://charts.rook.io/release
-    chart: rook-ceph
-    targetRevision: v1.14.11
+    chart: rook-ceph    
+    targetRevision: v1.15.1
     helm:
       values: |
         # Rook operator configuration
         image:
           repository: rook/ceph
-          tag: v1.14.11
+          tag: v1.15.1
         nodeSelector: {}
         tolerations: []
         resources:
@@ -76,20 +76,29 @@ spec:
   source:
     repoURL: https://charts.rook.io/release
     chart: rook-ceph-cluster
-    targetRevision: v1.14.11
+    targetRevision: v1.15.1
     helm:
-      values: |
-        # External Ceph cluster configuration
+      values: |        # External Ceph cluster configuration
         operatorNamespace: rook-ceph
         configOverride: |
           [global]
           osd_pool_default_size = 3
           osd_pool_default_min_size = 2
+          # Ceph 19.x compatibility settings
+          mon_allow_pool_size_one = false
+          mon_warn_on_pool_no_redundancy = true
         cephClusterSpec:
           external:
             enable: true
           crashCollector:
             disable: true
+          cleanupPolicy:
+            confirmation: ""
+            sanitizeDisks:
+              method: quick
+              dataSource: zero
+              iteration: 1
+            allowUninstallWithVolumes: false
           healthCheck:
             daemonHealth:
               mon:
@@ -100,9 +109,8 @@ spec:
                 interval: 60s
               status:
                 disabled: false
-                interval: 60s
-          cephVersion:
-            image: quay.io/ceph/ceph:v18.2.0
+                interval: 60s          cephVersion:
+            image: quay.io/ceph/ceph:v19.2.0
             allowUnsupported: false
         # Ingress configuration
         ingress:
@@ -191,6 +199,16 @@ spec:
         cpu: 500m
         memory: 1Gi
     logLevel: INFO
+    # Ceph 19.x NFS Ganesha configuration
+    config:
+      EXPORT_DEFAULTS:
+        Access_Type: RW
+        Squash: No_root_squash
+        Pseudo: "/"
+        Protocols: 4
+        Transports: TCP
+        Fsal:
+          Name: CEPH
     # Placement on worker nodes
     placement:
       nodeAffinity:
