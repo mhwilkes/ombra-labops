@@ -92,7 +92,8 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config            data:
+              - path: /config            
+          data:
             enabled: true
             type: nfs
             server: rook-nfs-media.rook-ceph.svc.cluster.local
