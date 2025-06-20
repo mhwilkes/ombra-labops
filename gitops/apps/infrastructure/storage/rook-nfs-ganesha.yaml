@@ -1,6 +1,7 @@
 # Rook-based NFS-Ganesha deployment for Kubernetes cluster
 # This provides native CephFS NFS exports using Rook operator
 # Replaces manual NFS-Ganesha deployment with CRD-based management
+# Updated: 2025-06-19
 
 # Install Rook Operator using official Helm chart
 ---
@@ -35,13 +36,12 @@ spec:
           enabled: true
         # Monitoring configuration
         monitoring:
-          enabled: false
-        # CSI configuration
+          enabled: false        # CSI configuration
         csi:
           enableRbdDriver: true
           enableCephfsDriver: true
           enableNFSSnapshotter: true
-        # Enable discovery daemon
+        # Enable discovery daemon        
         enableDiscoveryDaemon: false
   destination:
     server: https://kubernetes.default.svc
@@ -50,6 +50,11 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
     syncOptions:
     - CreateNamespace=true
     - Replace=true
@@ -145,11 +150,16 @@ spec:
         cephObjectStores: []
   destination:
     server: https://kubernetes.default.svc
-    namespace: rook-ceph
-  syncPolicy:
+    namespace: rook-ceph  
+    syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
     syncOptions:
     - CreateNamespace=true
 
@@ -256,9 +266,9 @@ spec:
   - name: rpcbind-udp
     port: 111
     protocol: UDP
-    targetPort: 111
-  type: LoadBalancer
-  loadBalancerIP: 192.168.55.220  # Set your desired IP
+    targetPort: 111  
+    type: LoadBalancer
+  # loadBalancerIP: 192.168.55.220  # Disabled to avoid conflict with legacy NFS
 
 ---
 # Job to initialize media directory structure
