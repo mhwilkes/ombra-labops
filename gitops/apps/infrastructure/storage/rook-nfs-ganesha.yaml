@@ -48,16 +48,16 @@ spec:
         enableDiscoveryDaemon: false  
   destination:
     server: https://kubernetes.default.svc
-    namespace: rook-ceph
+    namespace: rook-ceph  
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true    
-      managedNamespaceMetadata:
+      selfHeal: true
+    managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
-        pod-security.kubernetes.io/warn: privileged
+        pod-security.kubernetes.io/warn: privileged    
     syncOptions:
     - CreateNamespace=true
     - Replace=true
@@ -161,25 +161,8 @@ spec:
   # Skip dashboard and monitoring for minimal setup
   dashboard:
     enabled: false
-  monitoring:
-    enabled: false
-
----
-# CephFilesystem reference for external filesystem
-apiVersion: ceph.rook.io/v1
-kind: CephFilesystem
-metadata:
-  name: pve  # This matches your external filesystem name from MDS config
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  # For external clusters, we just need to reference the existing filesystem
-  preserveFilesystemOnDelete: true
-  metadataServer:
-    activeCount: 0  # External cluster manages MDS
-    activeStandby: false
-  dataPools: []  # External cluster manages pools
+  monitoring:    
+  enabled: false
 
 ---
 # CephNFS for media exports (deployed after cluster is ready)
@@ -212,20 +195,6 @@ spec:
           - matchExpressions:
             - key: node-role.kubernetes.io/control-plane
               operator: DoesNotExist
-
----
-# CephFilesystemSubVolumeGroup for organizing NFS exports
-apiVersion: ceph.rook.io/v1
-kind: CephFilesystemSubVolumeGroup
-metadata:
-  name: media-subvolume-group
-  namespace: rook-ceph
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-spec:
-  filesystemName: pve  # Use existing CephFS name from Proxmox
-  pinning:
-    distributed: 1
 
 ---
 # Service to expose Rook NFS-Ganesha externally via MetalLB
