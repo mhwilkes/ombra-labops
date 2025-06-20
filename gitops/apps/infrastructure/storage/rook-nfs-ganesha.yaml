@@ -165,76 +165,7 @@ spec:
     distributed: 1
 
 ---
-# Service for NFS access (ClusterIP for internal access)
-apiVersion: v1
-kind: Service
-metadata:
-  name: rook-nfs-media
-  namespace: rook-ceph
-  labels:
-    app: rook-nfs-media
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  selector:
-    app: rook-ceph-nfs
-    nfs_cluster: media-nfs
-  ports:
-  - name: nfs
-    port: 2049
-    protocol: TCP
-    targetPort: 2049
-  - name: nfs-udp
-    port: 2049
-    protocol: UDP
-    targetPort: 2049
-  - name: rpcbind
-    port: 111
-    protocol: TCP
-    targetPort: 111
-  - name: rpcbind-udp
-    port: 111
-    protocol: UDP
-    targetPort: 111
-  type: ClusterIP
-
----
-# LoadBalancer Service for external NFS access (optional)
-apiVersion: v1
-kind: Service
-metadata:
-  name: rook-nfs-media-external
-  namespace: rook-ceph
-  labels:
-    app: rook-nfs-media-external
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  selector:
-    app: rook-ceph-nfs
-    nfs_cluster: media-nfs
-  ports:
-  - name: nfs
-    port: 2049
-    protocol: TCP
-    targetPort: 2049
-  - name: nfs-udp
-    port: 2049
-    protocol: UDP
-    targetPort: 2049
-  - name: rpcbind
-    port: 111
-    protocol: TCP
-    targetPort: 111
-  - name: rpcbind-udp
-    port: 111
-    protocol: UDP
-    targetPort: 111  
-  type: LoadBalancer
-  # loadBalancerIP: 192.168.55.220  # Disabled to avoid conflict with legacy NFS
-
----
-# Service to expose Rook NFS-Ganesha externally
+# Service to expose Rook NFS-Ganesha externally via MetalLB
 # This provides the LoadBalancer IP that media workloads will use
 apiVersion: v1
 kind: Service
@@ -243,6 +174,9 @@ metadata:
   namespace: rook-ceph
   annotations:
     argocd.argoproj.io/sync-wave: "4"
+    # MetalLB annotations for better control
+    metallb.universe.tf/address-pool: default-pool
+    metallb.universe.tf/allow-shared-ip: "false"
   labels:
     app: rook-ceph-nfs-media-nfs
 spec:
@@ -261,9 +195,10 @@ spec:
   - name: rpcbind
     port: 111
     protocol: TCP
-    targetPort: 111
+    targetPort: 111  
   type: LoadBalancer
-  loadBalancerIP: 192.168.55.221  # IP for media workloads to mount NFS
+  # Let MetalLB auto-assign IP from the pool instead of hardcoding
+  # loadBalancerIP: 192.168.55.220
 
 ---
 # ClusterIP Service for internal cluster access
