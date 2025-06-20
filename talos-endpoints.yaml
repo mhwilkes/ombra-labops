@@ -1,0 +1,25 @@
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: talos
+  namespace: default
+  labels:
+    kubernetes.io/service-name: talos
+addressType: IPv4
+endpoints:
+- addresses:
+  - "192.168.55.104"
+  conditions:
+    ready: true
+- addresses:
+  - "192.168.55.106"
+  conditions:
+    ready: true
+- addresses:
+  - "192.168.55.103"
+  conditions:
+    ready: true
+ports:
+- name: apid
+  port: 50000
+  protocol: TCP
