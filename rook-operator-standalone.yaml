@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rook-operator-only
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.rook.io/release
+    chart: rook-ceph
+    targetRevision: v1.14.11
+    helm:
+      values: |
+        # Rook operator configuration
+        image:
+          repository: rook/ceph
+          tag: v1.14.11
+        nodeSelector: {}
+        tolerations: []
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        # Enable CRDs installation
+        crds:
+          enabled: true        
+        # Monitoring configuration
+        monitoring:
+          enabled: false
+        # CSI configuration
+        csi:
+          enableRbdDriver: true
+          enableCephfsDriver: true
+          enableNFSSnapshotter: true        
+        # Enable discovery daemon
+        enableDiscoveryDaemon: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+    syncOptions:
+    - CreateNamespace=true
+    - Replace=true
