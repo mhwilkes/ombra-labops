@@ -155,10 +155,11 @@ spec:
     daemonHealth:
       mon:
         disabled: false
-        interval: 60s
+        interval: 60s  
   cephVersion:
     image: quay.io/ceph/ceph:v19.2.0
-    allowUnsupported: false  # Skip dashboard and monitoring for minimal setup
+    allowUnsupported: false
+  # Skip dashboard and monitoring for minimal setup
   dashboard:
     enabled: false
   monitoring:
@@ -251,12 +252,12 @@ spec:
   - name: nfs
     port: 2049
     protocol: TCP
-    targetPort: 2049
+    targetPort: 2049  
   - name: mountd
     port: 20048
     protocol: TCP
-    targetPort: 20048  
-    - name: rpcbind
+    targetPort: 20048
+  - name: rpcbind
     port: 111
     protocol: TCP
     targetPort: 111
