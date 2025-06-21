@@ -19,8 +19,7 @@ spec:
     chart: rook-ceph    
     targetRevision: v1.15.1
     helm:
-      values: |
-        # Rook operator configuration
+      values: |        # Rook operator configuration
         image:
           repository: rook/ceph
           tag: v1.15.1
@@ -33,6 +32,10 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
+        # Environment variables for external cluster support
+        env:
+          - name: ROOK_EXTERNAL_FSID
+            value: "310985e9-91ef-4f2f-a6e6-89327b2a8b1d"
         # Enable CRDs installation
         crds:
           enabled: true        
