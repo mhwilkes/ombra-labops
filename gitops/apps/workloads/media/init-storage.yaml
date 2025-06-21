@@ -8,9 +8,11 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     argocd.argoproj.io/sync-wave: "-1"
 spec:
-  template:
+  template:    
     spec:
       restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 1000
       containers:
       - name: storage-init
         image: alpine:latest
@@ -49,14 +51,13 @@ spec:
           ls -la /data/torrents/
           ls -la /data/usenet/
           ls -la /data/media/
-          ls -la /data/config/
+          ls -la /data/config/        
         volumeMounts:
         - name: shared-storage
           mountPath: /data
         securityContext:
           runAsUser: 0  # Run as root to set permissions
           runAsGroup: 0
-          fsGroup: 1000
       volumes:
       - name: shared-storage
         persistentVolumeClaim:
