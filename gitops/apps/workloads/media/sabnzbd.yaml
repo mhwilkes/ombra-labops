@@ -1,4 +1,7 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1                image:
+                  repository: ghcr.io/home-operations/sabnzbd
+                  tag: 4.5.1
+                env:ha1
 kind: Application
 metadata:
   name: sabnzbd
@@ -26,7 +29,8 @@ spec:
               app:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1                  env:
+                  tag: 4.5.1                  
+                env:
                   TZ: America/New_York
                   SABNZBD__APP__INSTANCENAME: SABnzbd
                   SABNZBD__SERVER__PORT: &port 8080
