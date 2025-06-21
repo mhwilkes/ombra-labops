@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: maintainerr
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"  # Library maintenance after Plex
 spec:
   project: default  
   source:

@@ -2,9 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: sonarr
-  namespace: argocd
+  namespace: argocd  
   annotations:
-    argocd.argoproj.io/sync-wave: "1"  # Deploy after storage init
+    argocd.argoproj.io/sync-wave: "2"  # Content management after indexers
 spec:
   project: default
   source:

@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: overseerr
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"  # Request management after media server
 spec:
   project: default  
   source:
