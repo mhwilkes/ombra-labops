@@ -10,10 +10,9 @@ spec:
   source:
     repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
-    targetRevision: 3.5.1
-    helm:
+    targetRevision: 3.5.1    helm:
       values: |          
-      controllers:
+        controllers:
           sabnzbd:
             pod:
               securityContext:
@@ -26,15 +25,17 @@ spec:
               app:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1
+                  tag: 4.5.1                
                 env:
                   TZ: America/New_York
                   SABNZBD__APP__INSTANCENAME: SABnzbd
                   SABNZBD__SERVER__PORT: &port 8080
                   SABNZBD__LOG__LEVEL: info
-                  # Fix hostname verification
                   SABNZBD__HOST_WHITELIST_ENTRIES: "sabnzbd.michaelwilkes.dev,localhost,127.0.0.1"
                   SABNZBD__MISC__LOCAL_RANGES: "127.0.0.1,::1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8"
+                  SABNZBD__MISC__HTTPS_CERT: ""
+                  SABNZBD__MISC__HTTPS_KEY: ""
+                  SABNZBD__MISC__ENABLE_HTTPS: "0"
                 envFrom:
                   - secretRef:
                       name: sabnzbd-secrets
