@@ -27,7 +27,8 @@ spec:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
                   tag: 4.5.1
-                env:                  TZ: America/New_York
+                env:                  
+                  TZ: America/New_York
                   SABNZBD__APP__INSTANCENAME: SABnzbd
                   SABNZBD__SERVER__PORT: &port 8080
                   SABNZBD__LOG__LEVEL: info
