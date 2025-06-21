@@ -12,9 +12,10 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |
+      values: |        
         controllers:
-          sonarr:            pod:
+          sonarr:
+            pod:
               securityContext:
                 runAsUser: 1000  # Standard media user ID
                 runAsGroup: 1000  # Standard media group ID

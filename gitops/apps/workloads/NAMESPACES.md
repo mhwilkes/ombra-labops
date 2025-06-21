@@ -4,94 +4,75 @@ This document outlines the namespace organization strategy for the media stack w
 
 ## Namespace Structure
 
-### `plex` - Media Server
-**Purpose**: Dedicated namespace for Plex media server
+### `media` - Consolidated Media Stack ✅ **IMPLEMENTED**
+
+**Purpose**: Single namespace for all media-related applications
 **Applications**:
-- Plex Media Server
+- **Plex Media Server** - Core media consumption service
+- **Sonarr** - TV show management
+- **Radarr** - Movie management  
+- **Prowlarr** - Indexer management
+- **Bazarr** - Subtitle management
+- **Recyclarr** - Quality profile management
+- **qBittorrent** - Torrent client
+- **SABnzbd** - Usenet client
+- **Overseerr** - Media request management
+- **Maintainerr** - Media maintenance
+- **Tautulli** - Plex analytics
 
 **Rationale**: 
-- Plex is the core media consumption service
-- Isolates media serving from management/download operations
-- Easier to apply specific security policies and resource quotas
-- Can be scaled independently
-
-### `arr` - Media Management
-**Purpose**: *arr application suite for media automation
-**Applications**:
-- Sonarr (TV shows)
-- Radarr (Movies)  
-- Prowlarr (Indexer management)
-
-**Rationale**:
-- These applications work closely together
-- Shared configuration patterns and security requirements
-- Common resource usage patterns
-- Logical grouping for monitoring and troubleshooting
-
-### `downloads` - Download Clients
-**Purpose**: Download client applications
-**Applications**:
-- qBittorrent (Torrent client)
-- SABnzbd (Usenet client)
-
-**Rationale**:
-- Download operations are resource-intensive
-- Separate security boundary for potentially higher-risk operations
-- Easier to apply network policies for external connections
-- Can apply specific resource limits for download operations
+- **Simplified networking** - No cross-namespace communication needed
+- **Easier storage management** - All apps share the same storage volumes naturally
+- **Streamlined secrets** - API keys and credentials shared easily between related services  
+- **Better resource management** - Unified resource quotas and limits for the entire media stack
+- **Simpler backup/restore** - Single namespace to backup
+- **Reduced complexity** - Fewer namespace boundaries to manage
 
 ### `dashboard` - Monitoring & Management
-**Purpose**: Dashboard and monitoring applications
+**Purpose**: Dashboard and monitoring applications (kept separate for different access patterns)
 **Applications**:
 - Homepage (Service dashboard)
 
 **Rationale**:
-- Central monitoring and access point
 - Different security requirements (read-only access to other services)
 - Can be exposed differently than core services
+- May need access to multiple namespaces for monitoring
 
-## Cross-Namespace Communication
-
-### Service Discovery
-Applications can communicate across namespaces using fully qualified domain names:
-- `service-name.namespace.svc.cluster.local`
-- Example: `qbittorrent.downloads.svc.cluster.local`
-
-### Storage Sharing
-All applications share common storage paths:
+## Storage Sharing
+All media applications share common storage paths:
 - `/opt/downloads` - Shared download directory
-- `/opt/plex/media` - Shared media library
+- `/opt/plex/media` - Shared media library  
 - Individual `/opt/[app]/config` directories
 
-### Network Policies (Future Enhancement)
-Consider implementing NetworkPolicies to:
-- Allow arr apps to communicate with download clients
-- Allow Plex to access media directories
-- Restrict external access to download clients
-- Allow dashboard to query all services
+## Benefits of Consolidated Structure
 
-## Benefits of This Structure
+1. **Simplified Communication**: All media apps can communicate directly without FQDN
+2. **Unified Resource Management**: Single ResourceQuota for the entire media stack
+3. **Easier Troubleshooting**: All related services in one place
+4. **Streamlined Security**: Single set of NetworkPolicies and RBAC rules
+5. **Better Storage Management**: Natural volume sharing between related services
+6. **Simpler Monitoring**: Single namespace to monitor for the entire media pipeline
 
-1. **Security Isolation**: Each namespace can have different security policies
-2. **Resource Management**: Apply resource quotas per functional area
-3. **Monitoring**: Easier to monitor and alert on functional areas
-4. **Scaling**: Scale different components independently
-5. **Troubleshooting**: Isolate issues to specific functional areas
-6. **Access Control**: Different RBAC policies per namespace
+## Migration Completed ✅
 
-## Migration Notes
+**What was moved to `media` namespace:**
+- **From `arr/`**: bazarr, prowlarr, radarr, sonarr, recyclarr
+- **From `downloads/`**: qbittorrent, sabnzbd  
+- **From `plex/`**: plex, maintainerr, tautulli
+- **From `requests/`**: overseerr
 
-When migrating from the previous single `media` namespace:
-1. Applications will be recreated in new namespaces
-2. ConfigMaps and Secrets will need to be recreated
-3. Persistent volumes should be preserved (using hostPath)
-4. Service discovery URLs between apps may need updates
+**Changes made:**
+1. ✅ All application manifests moved to `media/` directory
+2. ✅ All namespace references updated to `media`
+3. ✅ ArgoCD application consolidated into single `media-stack`
+4. ✅ Old directories removed
+5. ✅ Documentation updated
 
 ## Future Enhancements
 
 Consider adding:
 - `monitoring` namespace for Prometheus, Grafana
-- `security` namespace for security tools
+- `security` namespace for security tools  
 - `backup` namespace for backup solutions
-- NetworkPolicies for enhanced security
-- ResourceQuotas per namespace
+- NetworkPolicies within the media namespace for micro-segmentation
+- ResourceQuotas for the consolidated media namespace
