@@ -15,9 +15,11 @@ spec:
       releaseName: rook-ceph-cluster
       parameters:
         - name: operatorNamespace
-          value: rook-ceph      
+          value: rook-ceph
       values: |
-        # External Ceph Cluster Configuration
+        # All values below are taken from the CephCluster CRD
+        # -- Cluster configuration.
+        # @default -- See [below](#ceph-cluster-spec)
         cephClusterSpec:
           external:
             enable: true
@@ -28,51 +30,17 @@ spec:
               mon:
                 disabled: false
                 interval: 45s
+        # -- A list of CephBlockPool configurations to deploy
+        # @default -- See [below](#ceph-block-pools)
+        cephBlockPools: {}
 
-        # Disable all internal Ceph resources for external cluster
-        cephBlockPools: []
-        cephFileSystems: []
-        cephObjectStores: []
+        # -- A list of CephFileSystem configurations to deploy
+        # @default -- See [below](#ceph-file-systems)
+        cephFileSystems: {}
 
-        # Configure CephNFS for NFS shares
-        cephNFS:
-          - name: media-nfs
-            server:
-              active: 2
-              logLevel: "INFO"
-              placement:
-                nodeAffinity:
-                  requiredDuringSchedulingIgnoredDuringExecution:
-                    nodeSelectorTerms:
-                      - matchExpressions:
-                          - key: node-role.kubernetes.io/control-plane
-                            operator: DoesNotExist
-              resources:
-                limits:
-                  cpu: "1000m"
-                  memory: "2Gi"
-                requests:
-                  cpu: "500m"
-                  memory: "1Gi"
-            rados:
-              pool: "cephfs_metadata"
-              namespace: "nfs-ganesha"
-
-        # Storage classes for NFS
-        storageClasses:
-          - name: ceph-nfs
-            isDefault: false
-            reclaimPolicy: Delete
-            allowVolumeExpansion: true
-            volumeBindingMode: Immediate
-            provisioner: nfs.csi.ceph.com
-            parameters:
-              nfsCluster: media-nfs
-              server: rook-nfs-media-nfs.rook-ceph.svc.cluster.local
-
-        # Enable toolbox for management
-        cephToolbox:
-          enabled: true
+        # -- A list of CephObjectStore configurations to deploy
+        # @default -- See [below](#ceph-object-stores)
+        cephObjectStores: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: rook-ceph
