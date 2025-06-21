@@ -21,12 +21,12 @@ spec:
                 runAsGroup: 2000
                 runAsNonRoot: true
                 fsGroup: 2000
-                fsGroupChangePolicy: "Always"
+                fsGroupChangePolicy: "Always"            
             containers:
               app:
                 image:
                   repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1                  
+                  tag: 4.5.1
                 env:
                   TZ: America/New_York
                   SABNZBD__APP__INSTANCENAME: SABnzbd
