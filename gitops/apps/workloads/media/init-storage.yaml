@@ -22,16 +22,11 @@ spec:
         - |
           set -e
           echo "Creating media storage directory structure..."
-          
-          # Create base directories
-          mkdir -p /data/torrents/{movies,tv,music}
-          mkdir -p /data/usenet/{incomplete,complete/{movies,tv,music},watch}
-          mkdir -p /data/media/{movies,tv,music}
-          
-          # Create config directories for each application
-          mkdir -p /data/config/{plex,sonarr,radarr,prowlarr,bazarr,qbittorrent,sabnzbd,overseerr,maintainerr,tautulli,recyclarr}
-          
-          # Set proper permissions (PUID=1000, PGID=1000 for media apps)
+            # Create base directories
+          mkdir -p /data/torrents/movies /data/torrents/tv /data/torrents/music
+          mkdir -p /data/usenet/incomplete /data/usenet/complete/movies /data/usenet/complete/tv /data/usenet/complete/music /data/usenet/watch
+          mkdir -p /data/media/movies /data/media/tv /data/media/music
+            # Set proper permissions (PUID=1000, PGID=1000 for media apps)
           # Most media apps run as user 1000:1000
           chown -R 1000:1000 /data
           chmod -R 755 /data
@@ -45,13 +40,11 @@ spec:
           
           echo "Directory structure created successfully:"
           find /data -type d | sort
-          
-          echo "Permissions set:"
+            echo "Permissions set:"
           ls -la /data/
           ls -la /data/torrents/
           ls -la /data/usenet/
           ls -la /data/media/
-          ls -la /data/config/        
         volumeMounts:
         - name: shared-storage
           mountPath: /data

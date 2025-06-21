@@ -34,30 +34,17 @@ data:
     ├── usenet/             # SABnzbd downloads  
     │   ├── incomplete/     # Incomplete downloads
     │   ├── complete/       # Completed downloads
-    │   └── watch/          # Watch folder for NZB files
+    │   └── watch/          # Watch folder for NZB files    
     ├── media/              # Final media library
     │   ├── movies/         # Movie library (Plex/Radarr)
     │   ├── tv/             # TV show library (Plex/Sonarr)
     │   └── music/          # Music library
-    └── config/             # Application configurations
-        ├── plex/           # Plex configuration
-        ├── sonarr/         # Sonarr configuration
-        ├── radarr/         # Radarr configuration
-        ├── prowlarr/       # Prowlarr configuration
-        ├── bazarr/         # Bazarr configuration
-        ├── qbittorrent/    # qBittorrent configuration
-        ├── sabnzbd/        # SABnzbd configuration
-        ├── overseerr/      # Overseerr configuration
-        ├── maintainerr/    # Maintainerr configuration
-        ├── tautulli/       # Tautulli configuration
-        └── recyclarr/      # Recyclarr configuration
-    ```
     
     ## Application Mount Points:
     - **Download Clients**: Mount `/data/torrents` and `/data/usenet`
     - **Media Managers**: Mount `/data/torrents`, `/data/usenet`, and `/data/media`
     - **Media Server**: Mount `/data/media` for library access
-    - **All Apps**: Mount `/data/config/{app-name}` for persistent configuration
+    - **All Apps**: Each app has separate config PVC (ceph-configs storage class)
     
     ## User/Group Configuration:
     - **PUID**: 1000 (media user)
