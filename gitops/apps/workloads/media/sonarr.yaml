@@ -10,9 +10,9 @@ spec:
   source:
     repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
-    targetRevision: 3.5.1
+    targetRevision: 3.5.1    
     helm:
-      values: |        
+      values: |
         controllers:
           sonarr:
             pod:
