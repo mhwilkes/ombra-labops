@@ -21,6 +21,8 @@ spec:
         # -- Cluster configuration.
         # @default -- See [below](#ceph-cluster-spec)
         cephClusterSpec:
+          cephVersion:
+            image: quay.io/ceph/ceph:v19.2.1
           external:
             enable: true
           crashCollector:
