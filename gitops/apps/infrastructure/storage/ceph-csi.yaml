@@ -35,7 +35,7 @@ spec:
           mountOptions: []
           parameters:
             imageFormat: "2"
-            imageFeatures: layering
+            imageFeatures: "layering"
             csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
             csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
             csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret            
@@ -52,7 +52,7 @@ spec:
             allowVolumeExpansion: true
             parameters:
               imageFormat: "2"
-              imageFeatures: layering
+              imageFeatures: "layering"
               csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
               csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
               csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
@@ -67,7 +67,7 @@ spec:
             allowVolumeExpansion: true
             parameters:
               imageFormat: "2"
-              imageFeatures: layering
+              imageFeatures: "layering"
               csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
               csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
               csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
@@ -82,7 +82,7 @@ spec:
             allowVolumeExpansion: true
             parameters:
               imageFormat: "2"
-              imageFeatures: layering
+              imageFeatures: "layering"
               csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret
               csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd
               csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret
@@ -101,7 +101,7 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/audit: privileged        
+        pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -152,6 +152,7 @@ spec:
     syncOptions:
     - CreateNamespace=true
     managedNamespaceMetadata:
-      labels:        pod-security.kubernetes.io/enforce: privileged
+      labels:
+        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
