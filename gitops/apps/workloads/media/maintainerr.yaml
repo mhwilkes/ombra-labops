@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: bazarr
+  name: maintainerr
   namespace: argocd
 spec:
   project: default  
@@ -12,7 +12,7 @@ spec:
     helm:
       values: |          
         controllers:
-          bazarr:
+          maintainerr:
             pod:
               securityContext:
                 runAsUser: 2000
@@ -21,44 +21,28 @@ spec:
                 fsGroup: 2000
                 fsGroupChangePolicy: "Always"
             containers:
-              app:
+              app:                
                 image:
-                  repository: ghcr.io/home-operations/bazarr
-                  tag: 1.5.2
+                  repository: ghcr.io/jorenn92/maintainerr
+                  tag: 2.18.0                
                 env:
                   TZ: America/New_York
-                envFrom:
-                  - secretRef:
-                      name: bazarr-secrets
                 probes:
                   liveness:
                     enabled: true
-                    custom: true
-                    spec:
-                      httpGet:
-                        path: /system/status
-                        port: 6767
-                      initialDelaySeconds: 0
-                      periodSeconds: 10
-                      timeoutSeconds: 1
-                      failureThreshold: 3
                   readiness:
                     enabled: true
-                    custom: true
+                  startup:
+                    enabled: true
                     spec:
-                      httpGet:
-                        path: /system/status
-                        port: 6767
-                      initialDelaySeconds: 0
-                      periodSeconds: 10
-                      timeoutSeconds: 1
-                      failureThreshold: 3
+                      failureThreshold: 30
+                      periodSeconds: 5
                 resources:
                   requests:
                     cpu: 10m
                     memory: 250Mi
                   limits:
-                    memory: 2Gi
+                    memory: 1Gi
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -67,10 +51,10 @@ spec:
                       - ALL
         service:
           app:
-            controller: bazarr
+            controller: maintainerr
             ports:
               http:
-                port: 6767
+                port: 6246
         ingress:
           app:
             enabled: true
@@ -78,7 +62,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: bazarr.michaelwilkes.dev
+              - host: maintainerr.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -86,25 +70,18 @@ spec:
                       identifier: app
                       port: http
             tls:
-              - secretName: bazarr-tls
+              - secretName: maintainerr-tls
                 hosts:
-                  - bazarr.michaelwilkes.dev        
+                  - maintainerr.michaelwilkes.dev        
         persistence:
-          config:
+          data:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config            
-          media:
-            enabled: true
-            type: nfs
-            server: rook-nfs-media.rook-ceph.svc.cluster.local
-            path: /media
-            globalMounts:
-              - path: /data
+              - path: /opt/data
           tmp:
             enabled: true
             type: emptyDir
@@ -112,7 +89,7 @@ spec:
               - path: /tmp
   destination:
     server: https://kubernetes.default.svc
-    namespace: arr
+    namespace: media
   syncPolicy:
     automated:
       prune: true

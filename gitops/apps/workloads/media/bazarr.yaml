@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: overseerr
+  name: bazarr
   namespace: argocd
 spec:
   project: default  
@@ -12,7 +12,7 @@ spec:
     helm:
       values: |          
         controllers:
-          overseerr:
+          bazarr:
             pod:
               securityContext:
                 runAsUser: 2000
@@ -21,22 +21,23 @@ spec:
                 fsGroup: 2000
                 fsGroupChangePolicy: "Always"
             containers:
-              app:                
+              app:
                 image:
-                  repository: sctx/overseerr
-                  tag: develop
+                  repository: ghcr.io/home-operations/bazarr
+                  tag: 1.5.2
                 env:
                   TZ: America/New_York
-                  LOG_LEVEL: info
-                  PORT: 5055
+                envFrom:
+                  - secretRef:
+                      name: bazarr-secrets
                 probes:
                   liveness:
                     enabled: true
                     custom: true
                     spec:
                       httpGet:
-                        path: /api/v1/status
-                        port: 5055
+                        path: /system/status
+                        port: 6767
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
@@ -46,8 +47,8 @@ spec:
                     custom: true
                     spec:
                       httpGet:
-                        path: /api/v1/status
-                        port: 5055
+                        path: /system/status
+                        port: 6767
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
@@ -57,7 +58,7 @@ spec:
                     cpu: 10m
                     memory: 250Mi
                   limits:
-                    memory: 1Gi
+                    memory: 2Gi
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -66,10 +67,10 @@ spec:
                       - ALL
         service:
           app:
-            controller: overseerr
+            controller: bazarr
             ports:
               http:
-                port: 5055
+                port: 6767
         ingress:
           app:
             enabled: true
@@ -77,7 +78,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: overseerr.michaelwilkes.dev
+              - host: bazarr.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -85,9 +86,9 @@ spec:
                       identifier: app
                       port: http
             tls:
-              - secretName: overseerr-tls
+              - secretName: bazarr-tls
                 hosts:
-                  - overseerr.michaelwilkes.dev        
+                  - bazarr.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
@@ -96,7 +97,14 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /app/config
+              - path: /config              
+          media:
+            enabled: true
+            type: persistentVolumeClaim
+            existingClaim: media-shared-storage
+            globalMounts:
+              - path: /data
+                subPath: ""  # Mount the entire shared volume for Trash Guides structure
           tmp:
             enabled: true
             type: emptyDir
@@ -104,7 +112,7 @@ spec:
               - path: /tmp
   destination:
     server: https://kubernetes.default.svc
-    namespace: requests
+    namespace: media
   syncPolicy:
     automated:
       prune: true

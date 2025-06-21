@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: maintainerr
+  name: sabnzbd
   namespace: argocd
 spec:
   project: default  
@@ -12,7 +12,7 @@ spec:
     helm:
       values: |          
         controllers:
-          maintainerr:
+          sabnzbd:
             pod:
               securityContext:
                 runAsUser: 2000
@@ -21,28 +21,37 @@ spec:
                 fsGroup: 2000
                 fsGroupChangePolicy: "Always"
             containers:
-              app:                
+              app:
                 image:
-                  repository: ghcr.io/jorenn92/maintainerr
-                  tag: 2.18.0                
+                  repository: ghcr.io/home-operations/sabnzbd
+                  tag: 4.5.1                
                 env:
                   TZ: America/New_York
+                  SABNZBD__APP__INSTANCENAME: SABnzbd
+                  SABNZBD__SERVER__PORT: &port 8080
+                  SABNZBD__LOG__LEVEL: info
+                envFrom:
+                  - secretRef:
+                      name: sabnzbd-secrets
                 probes:
-                  liveness:
+                  liveness: &probes
                     enabled: true
-                  readiness:
-                    enabled: true
-                  startup:
-                    enabled: true
+                    custom: true
                     spec:
-                      failureThreshold: 30
-                      periodSeconds: 5
+                      httpGet:
+                        path: /
+                        port: *port
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
                     cpu: 10m
                     memory: 250Mi
                   limits:
-                    memory: 1Gi
+                    memory: 8Gi
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -51,10 +60,10 @@ spec:
                       - ALL
         service:
           app:
-            controller: maintainerr
+            controller: sabnzbd            
             ports:
               http:
-                port: 6246
+                port: 8080
         ingress:
           app:
             enabled: true
@@ -62,7 +71,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: maintainerr.michaelwilkes.dev
+              - host: sabnzbd.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -70,26 +79,37 @@ spec:
                       identifier: app
                       port: http
             tls:
-              - secretName: maintainerr-tls
+              - secretName: sabnzbd-tls
                 hosts:
-                  - maintainerr.michaelwilkes.dev        
+                  - sabnzbd.michaelwilkes.dev
         persistence:
-          data:
+          config:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /opt/data
-          tmp:
+              - path: /config              
+          data:
             enabled: true
-            type: emptyDir
+            type: persistentVolumeClaim
+            existingClaim: media-shared-storage
             globalMounts:
-              - path: /tmp
+              - path: /data
+                subPath: ""  # Mount the entire shared volume for Trash Guides structure
+          # Remove separate incomplete volume - use shared storage structure instead
+          # incomplete:
+          #   enabled: true
+          #   type: persistentVolumeClaim
+          #   storageClass: ceph-rbd
+          #   size: 50Gi
+          #   accessMode: ReadWriteOnce
+          #   globalMounts:
+          #     - path: /data/downloads/incomplete
   destination:
     server: https://kubernetes.default.svc
-    namespace: plex
+    namespace: media
   syncPolicy:
     automated:
       prune: true

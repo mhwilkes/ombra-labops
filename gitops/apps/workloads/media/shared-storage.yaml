@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-shared-storage
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany  # Allows multiple pods to mount the same volume
+  resources:
+    requests:
+      storage: 20Ti
+  storageClassName: cephfs  # Using CephFS for shared access with volume expansion support
+  volumeMode: Filesystem
+---
+# ConfigMap to document the shared directory structure
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-directory-structure
+  namespace: media
+data:
+  README.md: |
+    # Media Stack Shared Storage Structure
+    
+    This PVC provides shared storage for all media applications following the Trash Guides structure:
+    
+    ## Directory Structure:
+    ```
+    /data/
+    ├── torrents/           # qBittorrent downloads
+    │   ├── movies/         # Movie torrents
+    │   ├── tv/             # TV show torrents
+    │   └── music/          # Music torrents
+    ├── usenet/             # SABnzbd downloads  
+    │   ├── incomplete/     # Incomplete downloads
+    │   ├── complete/       # Completed downloads
+    │   └── watch/          # Watch folder for NZB files
+    ├── media/              # Final media library
+    │   ├── movies/         # Movie library (Plex/Radarr)
+    │   ├── tv/             # TV show library (Plex/Sonarr)
+    │   └── music/          # Music library
+    └── config/             # Application configurations
+        ├── plex/           # Plex configuration
+        ├── sonarr/         # Sonarr configuration
+        ├── radarr/         # Radarr configuration
+        ├── prowlarr/       # Prowlarr configuration
+        ├── bazarr/         # Bazarr configuration
+        ├── qbittorrent/    # qBittorrent configuration
+        ├── sabnzbd/        # SABnzbd configuration
+        ├── overseerr/      # Overseerr configuration
+        ├── maintainerr/    # Maintainerr configuration
+        ├── tautulli/       # Tautulli configuration
+        └── recyclarr/      # Recyclarr configuration
+    ```
+    
+    ## Application Mount Points:
+    - **Download Clients**: Mount `/data/torrents` and `/data/usenet`
+    - **Media Managers**: Mount `/data/torrents`, `/data/usenet`, and `/data/media`
+    - **Media Server**: Mount `/data/media` for library access
+    - **All Apps**: Mount `/data/config/{app-name}` for persistent configuration
+    
+    ## Benefits:
+    - Single storage pool for all applications
+    - Hardlinks work properly (no cross-filesystem moves)
+    - Simplified backup and management
+    - Consistent permissions across all apps
+    - Easy scaling with balloon storage
+  structure.txt: |
+    # Trash Guides Compatible Structure
+    /data/torrents/movies/          -> Radarr imports from here
+    /data/torrents/tv/              -> Sonarr imports from here  
+    /data/usenet/complete/movies/   -> Radarr imports from here
+    /data/usenet/complete/tv/       -> Sonarr imports from here
+    /data/media/movies/             -> Plex library path
+    /data/media/tv/                 -> Plex library path

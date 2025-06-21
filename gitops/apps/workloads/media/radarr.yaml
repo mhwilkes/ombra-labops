@@ -92,17 +92,17 @@ spec:
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config            
+              - path: /config              
           data:
             enabled: true
-            type: nfs
-            server: rook-nfs-media.rook-ceph.svc.cluster.local
-            path: /media
+            type: persistentVolumeClaim
+            existingClaim: media-shared-storage
             globalMounts:
               - path: /data
+                subPath: ""  # Mount the entire shared volume for Trash Guides structure
   destination:
     server: https://kubernetes.default.svc
-    namespace: arr
+    namespace: media
   syncPolicy:
     automated:
       prune: true

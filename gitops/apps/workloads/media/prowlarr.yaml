@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: tautulli
+  name: prowlarr
   namespace: argocd
 spec:
   project: default  
@@ -10,64 +10,61 @@ spec:
     chart: app-template
     targetRevision: 3.5.1
     helm:
-      values: |          
+      values: |        
         controllers:
-          tautulli:
+          prowlarr:
             pod:
               securityContext:
                 runAsUser: 2000
                 runAsGroup: 2000
                 runAsNonRoot: true
                 fsGroup: 2000
-                fsGroupChangePolicy: "Always"
+                fsGroupChangePolicy: OnRootMismatch
+            
             containers:
-              app:
+              app:                
                 image:
-                  repository: ghcr.io/home-operations/tautulli
-                  tag: 2.15.2
+                  repository: ghcr.io/home-operations/prowlarr
+                  tag: 1.37.0.5076
                 env:
                   TZ: America/New_York
+                  PROWLARR__APP__INSTANCENAME: Prowlarr
+                  PROWLARR__AUTH__METHOD: External
+                  PROWLARR__LOG__DBENABLED: "False"
+                  PROWLARR__LOG__LEVEL: info
+                  PROWLARR__SERVER__PORT: &port 9696
+                  PROWLARR__UPDATE__BRANCH: develop
                 probes:
-                  liveness:
+                  liveness: &probes
                     enabled: true
                     custom: true
                     spec:
                       httpGet:
-                        path: /status
-                        port: 8181
+                        path: /ping
+                        port: *port
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness:
-                    enabled: true
-                    custom: true
-                    spec:
-                      httpGet:
-                        path: /status
-                        port: 8181
-                      initialDelaySeconds: 0
-                      periodSeconds: 10
-                      timeoutSeconds: 1
-                      failureThreshold: 3
+                  readiness: *probes
                 resources:
                   requests:
-                    cpu: 10m
-                    memory: 250Mi
+                    cpu: 18m
+                    memory: 128Mi
                   limits:
-                    memory: 1Gi
+                    memory: 512Mi
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
                   capabilities:
                     drop:
-                      - ALL
+                      - ALL          
         service:
           app:
-            controller: tautulli
+            controller: prowlarr
             ports:
               http:
-                port: 8181
+                port: 9696
         ingress:
           app:
             enabled: true
@@ -75,34 +72,28 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: tautulli.michaelwilkes.dev
+              - host: prowlarr.michaelwilkes.dev
                 paths:
                   - path: /
-                    pathType: Prefix
+                    pathType: Prefix                    
                     service:
                       identifier: app
                       port: http
             tls:
-              - secretName: tautulli-tls
+              - secretName: prowlarr-tls
                 hosts:
-                  - tautulli.michaelwilkes.dev        
+                  - prowlarr.michaelwilkes.dev          
         persistence:
           config:
-            enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
-            size: 5Gi
+            size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config
-          tmp:
-            enabled: true
-            type: emptyDir
-            globalMounts:
-              - path: /tmp
   destination:
     server: https://kubernetes.default.svc
-    namespace: plex
+    namespace: media
   syncPolicy:
     automated:
       prune: true

@@ -69,7 +69,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: arr
+    namespace: media
   syncPolicy:
     automated:
       prune: true

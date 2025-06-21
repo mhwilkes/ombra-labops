@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: qbittorrent
+  name: tautulli
   namespace: argocd
 spec:
   project: default  
@@ -12,7 +12,7 @@ spec:
     helm:
       values: |          
         controllers:
-          qbittorrent:
+          tautulli:
             pod:
               securityContext:
                 runAsUser: 2000
@@ -23,21 +23,18 @@ spec:
             containers:
               app:
                 image:
-                  repository: ghcr.io/home-operations/qbittorrent
-                  tag: 5.1.0                
+                  repository: ghcr.io/home-operations/tautulli
+                  tag: 2.15.2
                 env:
                   TZ: America/New_York
-                  QBITTORRENT__PORT: 8080
-                  QBITTORRENT__BT_PORT: 6881
-                  QBT_Application__MemoryWorkingSetLimit: 8000
                 probes:
                   liveness:
                     enabled: true
                     custom: true
                     spec:
                       httpGet:
-                        path: /
-                        port: 8080
+                        path: /status
+                        port: 8181
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
@@ -47,8 +44,8 @@ spec:
                     custom: true
                     spec:
                       httpGet:
-                        path: /
-                        port: 8080
+                        path: /status
+                        port: 8181
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
@@ -58,7 +55,7 @@ spec:
                     cpu: 10m
                     memory: 250Mi
                   limits:
-                    memory: 8Gi
+                    memory: 1Gi
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -67,16 +64,10 @@ spec:
                       - ALL
         service:
           app:
-            controller: qbittorrent
-            type: LoadBalancer
-            loadBalancerIP: 192.168.55.211
+            controller: tautulli
             ports:
               http:
-                port: 8080
-              bittorrent:
-                port: 6881
-                protocol: TCP
-                targetPort: 6881
+                port: 8181
         ingress:
           app:
             enabled: true
@@ -84,7 +75,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: qbittorrent.michaelwilkes.dev
+              - host: tautulli.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -92,28 +83,26 @@ spec:
                       identifier: app
                       port: http
             tls:
-              - secretName: qbittorrent-tls
+              - secretName: tautulli-tls
                 hosts:
-                  - qbittorrent.michaelwilkes.dev
+                  - tautulli.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
-            size: 1Gi
-            accessMode: ReadWriteOnce            
+            size: 5Gi
+            accessMode: ReadWriteOnce
             globalMounts:
-              - path: /config          
-          data:
+              - path: /config
+          tmp:
             enabled: true
-            type: nfs
-            server: rook-nfs-media.rook-ceph.svc.cluster.local
-            path: /media
+            type: emptyDir
             globalMounts:
-              - path: /data
+              - path: /tmp
   destination:
     server: https://kubernetes.default.svc
-    namespace: downloads
+    namespace: media
   syncPolicy:
     automated:
       prune: true

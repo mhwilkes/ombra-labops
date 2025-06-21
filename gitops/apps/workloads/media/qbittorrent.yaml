@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sabnzbd
+  name: qbittorrent
   namespace: argocd
 spec:
   project: default  
@@ -12,7 +12,7 @@ spec:
     helm:
       values: |          
         controllers:
-          sabnzbd:
+          qbittorrent:
             pod:
               securityContext:
                 runAsUser: 2000
@@ -23,29 +23,36 @@ spec:
             containers:
               app:
                 image:
-                  repository: ghcr.io/home-operations/sabnzbd
-                  tag: 4.5.1                
+                  repository: ghcr.io/home-operations/qbittorrent
+                  tag: 5.1.0                
                 env:
                   TZ: America/New_York
-                  SABNZBD__APP__INSTANCENAME: SABnzbd
-                  SABNZBD__SERVER__PORT: &port 8080
-                  SABNZBD__LOG__LEVEL: info
-                envFrom:
-                  - secretRef:
-                      name: sabnzbd-secrets
+                  QBITTORRENT__PORT: 8080
+                  QBITTORRENT__BT_PORT: 6881
+                  QBT_Application__MemoryWorkingSetLimit: 8000
                 probes:
-                  liveness: &probes
+                  liveness:
                     enabled: true
                     custom: true
                     spec:
                       httpGet:
                         path: /
-                        port: *port
+                        port: 8080
                       initialDelaySeconds: 0
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness: *probes
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /
+                        port: 8080
+                      initialDelaySeconds: 0
+                      periodSeconds: 10
+                      timeoutSeconds: 1
+                      failureThreshold: 3
                 resources:
                   requests:
                     cpu: 10m
@@ -60,10 +67,16 @@ spec:
                       - ALL
         service:
           app:
-            controller: sabnzbd            
+            controller: qbittorrent
+            type: LoadBalancer
+            loadBalancerIP: 192.168.55.211
             ports:
               http:
                 port: 8080
+              bittorrent:
+                port: 6881
+                protocol: TCP
+                targetPort: 6881
         ingress:
           app:
             enabled: true
@@ -71,7 +84,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: sabnzbd.michaelwilkes.dev
+              - host: qbittorrent.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -79,37 +92,28 @@ spec:
                       identifier: app
                       port: http
             tls:
-              - secretName: sabnzbd-tls
+              - secretName: qbittorrent-tls
                 hosts:
-                  - sabnzbd.michaelwilkes.dev
+                  - qbittorrent.michaelwilkes.dev
         persistence:
           config:
             enabled: true
             type: persistentVolumeClaim
             storageClass: ceph-rbd
             size: 1Gi
-            accessMode: ReadWriteOnce
+            accessMode: ReadWriteOnce            
             globalMounts:
               - path: /config            
           data:
             enabled: true
-            type: nfs
-            server: rook-nfs-media.rook-ceph.svc.cluster.local
-            path: /media
+            type: persistentVolumeClaim
+            existingClaim: media-shared-storage
             globalMounts:
               - path: /data
-          # Remove separate incomplete volume - use shared storage structure instead
-          # incomplete:
-          #   enabled: true
-          #   type: persistentVolumeClaim
-          #   storageClass: ceph-rbd
-          #   size: 50Gi
-          #   accessMode: ReadWriteOnce
-          #   globalMounts:
-          #     - path: /data/downloads/incomplete
+                subPath: ""  # Mount the entire shared volume for Trash Guides structure
   destination:
     server: https://kubernetes.default.svc
-    namespace: downloads
+    namespace: media
   syncPolicy:
     automated:
       prune: true
