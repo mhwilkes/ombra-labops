@@ -16,20 +16,31 @@ spec:
       parameters:
         - name: operatorNamespace
           value: rook-ceph
-      valueFiles:
-        - $values/gitops/apps/infrastructure/rook-ceph/values-external.yaml
-  sources:
-    - repoURL: https://charts.rook.io/release
-      chart: rook-ceph-cluster
-      targetRevision: v1.17.5
-      helm:
-        releaseName: rook-ceph-cluster
-        parameters:
-          - name: operatorNamespace
-            value: rook-ceph
-    - repoURL: https://github.com/mhwilkes/ombra-labops.git
-      targetRevision: HEAD
-      ref: values
+      values: |
+        # All values below are taken from the CephCluster CRD
+        # -- Cluster configuration.
+        # @default -- See [below](#ceph-cluster-spec)
+        cephClusterSpec:
+          external:
+            enable: true
+          crashCollector:
+            disable: true
+          healthCheck:
+            daemonHealth:
+              mon:
+                disabled: false
+                interval: 45s
+        # -- A list of CephBlockPool configurations to deploy
+        # @default -- See [below](#ceph-block-pools)
+        cephBlockPools: {}
+
+        # -- A list of CephFileSystem configurations to deploy
+        # @default -- See [below](#ceph-file-systems)
+        cephFileSystems: {}
+
+        # -- A list of CephObjectStore configurations to deploy
+        # @default -- See [below](#ceph-object-stores)
+        cephObjectStores: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: rook-ceph
