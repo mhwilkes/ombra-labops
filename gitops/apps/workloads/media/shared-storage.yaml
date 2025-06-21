@@ -9,7 +9,7 @@ spec:
   resources:
     requests:
       storage: 20Ti
-  storageClassName: cephfs  # Using CephFS for shared access with volume expansion support
+  storageClassName: ceph-cephfs  # Using CephFS for shared access with volume expansion support
   volumeMode: Filesystem
 ---
 # ConfigMap to document the shared directory structure

@@ -86,7 +86,7 @@ spec:
           config:
             enabled: true
             type: persistentVolumeClaim
-            storageClass: ceph-rbd
+            storageClass: ceph-configs
             size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
@@ -98,15 +98,7 @@ spec:
             globalMounts:
               - path: /data
                 subPath: ""  # Mount the entire shared volume for Trash Guides structure
-          # Remove separate incomplete volume - use shared storage structure instead
-          # incomplete:
-          #   enabled: true
-          #   type: persistentVolumeClaim
-          #   storageClass: ceph-rbd
-          #   size: 50Gi
-          #   accessMode: ReadWriteOnce
-          #   globalMounts:
-          #     - path: /data/downloads/incomplete
+
   destination:
     server: https://kubernetes.default.svc
     namespace: media

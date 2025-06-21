@@ -85,12 +85,12 @@ spec:
             tls:
               - secretName: tautulli-tls
                 hosts:
-                  - tautulli.michaelwilkes.dev        
+                  - tautulli.michaelwilkes.dev          
         persistence:
           config:
             enabled: true
             type: persistentVolumeClaim
-            storageClass: ceph-rbd
+            storageClass: ceph-configs
             size: 5Gi
             accessMode: ReadWriteOnce
             globalMounts:

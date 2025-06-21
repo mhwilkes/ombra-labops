@@ -1,14 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rook-ceph
+  name: storage-secrets
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"  # Deploy before CSI drivers
 spec:
   project: default
   source:
     repoURL: https://github.com/mhwilkes/ombra-labops.git
     targetRevision: HEAD
-    path: gitops/apps/infrastructure/rook-ceph
+    path: gitops/apps/infrastructure/storage
+    helm:
+      parameters:
+      - name: clusterID
+        value: "ombra-ceph"
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
@@ -16,4 +22,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true

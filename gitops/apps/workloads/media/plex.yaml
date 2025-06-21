@@ -73,8 +73,8 @@ spec:
           config:
             enabled: true
             type: persistentVolumeClaim
-            storageClass: ceph-rbd
-            size: 10Gi
+            storageClass: ceph-configs
+            size: 1Gi
             accessMode: ReadWriteOnce
             globalMounts:
               - path: /config                
