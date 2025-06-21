@@ -59,6 +59,16 @@ data:
     - **Media Server**: Mount `/data/media` for library access
     - **All Apps**: Mount `/data/config/{app-name}` for persistent configuration
     
+    ## User/Group Configuration:
+    - **PUID**: 1000 (media user)
+    - **PGID**: 1000 (media group)
+    - All applications should run with these IDs for consistent permissions
+    
+    ## Initialization:
+    - Run `media-storage-init` Job before deploying applications
+    - This creates the directory structure with proper permissions
+    - Uses init container with ArgoCD PreSync hook
+    
     ## Benefits:
     - Single storage pool for all applications
     - Hardlinks work properly (no cross-filesystem moves)

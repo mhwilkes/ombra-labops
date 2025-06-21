@@ -1,0 +1,119 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: media-storage-init
+  namespace: media
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: storage-init
+        image: alpine:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "Creating media storage directory structure..."
+          
+          # Create base directories
+          mkdir -p /data/torrents/{movies,tv,music}
+          mkdir -p /data/usenet/{incomplete,complete/{movies,tv,music},watch}
+          mkdir -p /data/media/{movies,tv,music}
+          
+          # Create config directories for each application
+          mkdir -p /data/config/{plex,sonarr,radarr,prowlarr,bazarr,qbittorrent,sabnzbd,overseerr,maintainerr,tautulli,recyclarr}
+          
+          # Set proper permissions (PUID=1000, PGID=1000 for media apps)
+          # Most media apps run as user 1000:1000
+          chown -R 1000:1000 /data
+          chmod -R 755 /data
+          
+          # Special permissions for download directories
+          chmod -R 775 /data/torrents
+          chmod -R 775 /data/usenet
+          
+          # Create .keep files to ensure directories persist
+          find /data -type d -exec touch {}/.keep \;
+          
+          echo "Directory structure created successfully:"
+          find /data -type d | sort
+          
+          echo "Permissions set:"
+          ls -la /data/
+          ls -la /data/torrents/
+          ls -la /data/usenet/
+          ls -la /data/media/
+          ls -la /data/config/
+        volumeMounts:
+        - name: shared-storage
+          mountPath: /data
+        securityContext:
+          runAsUser: 0  # Run as root to set permissions
+          runAsGroup: 0
+          fsGroup: 1000
+      volumes:
+      - name: shared-storage
+        persistentVolumeClaim:
+          claimName: media-shared-storage
+---
+# ConfigMap with initialization script for reusability
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-storage-init-script
+  namespace: media
+data:
+  init.sh: |
+    #!/bin/sh
+    set -e
+    
+    echo "=== Media Storage Initialization ==="
+    echo "Creating directory structure according to Trash Guides..."
+    
+    # Base directories
+    echo "Creating base directories..."
+    mkdir -p /data/torrents/{movies,tv,music}
+    mkdir -p /data/usenet/{incomplete,complete/{movies,tv,music},watch}
+    mkdir -p /data/media/{movies,tv,music}
+    
+    # Application config directories
+    echo "Creating application config directories..."
+    mkdir -p /data/config/{plex,sonarr,radarr,prowlarr,bazarr,qbittorrent,sabnzbd,overseerr,maintainerr,tautulli,recyclarr}
+    
+    # Set ownership to media user (1000:1000)
+    echo "Setting ownership to 1000:1000..."
+    chown -R 1000:1000 /data
+    
+    # Set base permissions
+    echo "Setting permissions..."
+    chmod -R 755 /data
+    
+    # Download directories need write access for multiple apps
+    chmod -R 775 /data/torrents
+    chmod -R 775 /data/usenet
+    chmod -R 775 /data/media
+    
+    # Config directories should be app-specific
+    chmod -R 750 /data/config/*
+    
+    # Create .keep files to preserve empty directories
+    echo "Creating .keep files..."
+    find /data -type d -exec touch {}/.keep \;
+    
+    echo "=== Initialization Complete ==="
+    echo "Directory structure:"
+    find /data -type d | sort
+    
+    echo ""
+    echo "Permissions:"
+    ls -la /data/
+    
+    echo ""
+    echo "Storage usage:"
+    df -h /data

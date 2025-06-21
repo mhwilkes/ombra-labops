@@ -101,10 +101,8 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
-        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/audit: privileged        
         pod-security.kubernetes.io/warn: privileged
-  dependsOn:
-  - storage-secrets  # Requires Ceph secrets from Infisical
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -154,9 +152,6 @@ spec:
     syncOptions:
     - CreateNamespace=true
     managedNamespaceMetadata:
-      labels:
-        pod-security.kubernetes.io/enforce: privileged
+      labels:        pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
-  dependsOn:
-  - storage-secrets  # Requires Ceph secrets from Infisical
