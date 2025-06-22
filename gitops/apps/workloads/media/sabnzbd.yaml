@@ -87,7 +87,7 @@ spec:
             tls:
               - secretName: sabnzbd-tls
                 hosts:
-                  - sabnzbd.michaelwilkes.dev
+                  - sabnzbd.michaelwilkes.dev        
         persistence:
           config:
             enabled: true
@@ -103,7 +103,13 @@ spec:
             existingClaim: media-shared-storage
             globalMounts:
               - path: /data
-                subPath: ""  # Mount the entire shared volume for Trash Guides structure
+                subPath: ""            
+          tmp:
+            enabled: true
+            type: emptyDir
+            sizeLimit: 10Gi  
+            globalMounts:
+              - path: /tmp
 
   destination:
     server: https://kubernetes.default.svc
