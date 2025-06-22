@@ -67,7 +67,7 @@ spec:
                   SABNZBD__MISC__AUTO_BROWSER: "0"       
                 envFrom:
                   - secretRef:
-                      name: sabnzbd-secrets
+                      name: sabnzbd-secrets                
                 probes:
                   liveness: &probes
                     enabled: true
@@ -80,7 +80,7 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness: *probes                
+                  readiness: *probes
                 resources:
                   requests:
                     cpu: 2000m      # Request 2 cores (50% of node)
