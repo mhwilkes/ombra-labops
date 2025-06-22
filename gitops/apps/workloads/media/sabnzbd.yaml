@@ -10,7 +10,8 @@ spec:
   source:
     repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
-    targetRevision: 3.5.1    helm:
+    targetRevision: 3.5.1    
+    helm:
       values: |          
         controllers:
           sabnzbd:
