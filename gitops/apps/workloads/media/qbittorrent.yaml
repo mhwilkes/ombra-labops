@@ -14,7 +14,8 @@ spec:
     helm:
       values: |          
         controllers:
-          qbittorrent:            pod:
+          qbittorrent:            
+            pod:
               securityContext:
                 runAsUser: 1000  # Standard media user ID
                 runAsGroup: 1000  # Standard media group ID

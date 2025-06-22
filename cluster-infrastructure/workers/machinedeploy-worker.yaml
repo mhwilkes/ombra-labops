@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   clusterName: ombra
-  replicas: 5
+  replicas: 11  # Increased from 5 to 11 worker nodes
   selector:
     matchLabels: null
   template:
