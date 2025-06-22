@@ -60,11 +60,11 @@ spec:
                   # Performance optimization settings
                   SABNZBD__MISC__MAX_ART_TRY: "10"
                   SABNZBD__MISC__MAX_ARTICLE_TRIES: "5" 
-                  SABNZBD__MISC__MAX_DOWNLOAD_RATE: "0"  # Unlimited
-                  SABNZBD__MISC__CACHE_LIMIT: "2048M"    # 2GB cache for high-speed downloads
-                  SABNZBD__MISC__DIRECT_UNPACK: "1"      # Enable direct unpacking
-                  SABNZBD__MISC__IGNORE_SAMPLES: "1"     # Skip sample files
-                  SABNZBD__MISC__AUTO_BROWSER: "0"       # Disable auto browser
+                  SABNZBD__MISC__MAX_DOWNLOAD_RATE: "0"  
+                  SABNZBD__MISC__CACHE_LIMIT: "2048M"    
+                  SABNZBD__MISC__DIRECT_UNPACK: "1"      
+                  SABNZBD__MISC__IGNORE_SAMPLES: "1"     
+                  SABNZBD__MISC__AUTO_BROWSER: "0"       
                 envFrom:
                   - secretRef:
                       name: sabnzbd-secrets
