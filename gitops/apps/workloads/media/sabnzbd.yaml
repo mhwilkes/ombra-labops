@@ -80,7 +80,8 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness: *probes                resources:
+                  readiness: *probes                
+                resources:
                   requests:
                     cpu: 2000m      # Request 2 cores (50% of node)
                     memory: 4Gi     # Request 4GB (50% of node)
