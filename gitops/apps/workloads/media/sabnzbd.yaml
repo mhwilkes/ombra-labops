@@ -14,7 +14,7 @@ spec:
     helm:
       values: |          
         controllers:
-          sabnzbd:            
+          sabnzbd:
             pod:
               securityContext:
                 runAsUser: 1000  # Standard media user ID
@@ -22,6 +22,26 @@ spec:
                 runAsNonRoot: true
                 fsGroup: 1000
                 fsGroupChangePolicy: "Always"
+              # Node affinity to prefer worker nodes with more available resources
+              affinity:
+                nodeAffinity:
+                  preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    preference:
+                      matchExpressions:
+                      - key: node-role.kubernetes.io/control-plane
+                        operator: DoesNotExist
+                # Anti-affinity to avoid scheduling with other heavy workloads
+                podAntiAffinity:
+                  preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 50
+                    podAffinityTerm:
+                      labelSelector:
+                        matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values: ["plex", "qbittorrent"]
+                      topologyKey: kubernetes.io/hostname
             containers:
               app:
                 image:
@@ -37,6 +57,14 @@ spec:
                   SABNZBD__MISC__HTTPS_CERT: ""
                   SABNZBD__MISC__HTTPS_KEY: ""
                   SABNZBD__MISC__ENABLE_HTTPS: "0"
+                  # Performance optimization settings
+                  SABNZBD__MISC__MAX_ART_TRY: "10"
+                  SABNZBD__MISC__MAX_ARTICLE_TRIES: "5" 
+                  SABNZBD__MISC__MAX_DOWNLOAD_RATE: "0"  # Unlimited
+                  SABNZBD__MISC__CACHE_LIMIT: "2048M"    # 2GB cache for high-speed downloads
+                  SABNZBD__MISC__DIRECT_UNPACK: "1"      # Enable direct unpacking
+                  SABNZBD__MISC__IGNORE_SAMPLES: "1"     # Skip sample files
+                  SABNZBD__MISC__AUTO_BROWSER: "0"       # Disable auto browser
                 envFrom:
                   - secretRef:
                       name: sabnzbd-secrets
@@ -52,13 +80,13 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 1
                       failureThreshold: 3
-                  readiness: *probes
-                resources:
+                  readiness: *probes                resources:
                   requests:
-                    cpu: 10m
-                    memory: 250Mi
+                    cpu: 2000m      # Request 2 cores (50% of node)
+                    memory: 4Gi     # Request 4GB (50% of node)
                   limits:
-                    memory: 8Gi
+                    cpu: 3500m      # Allow up to 3.5 cores (87.5% of node)
+                    memory: 7Gi     # Allow up to 7GB (87.5% of node)
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: true
@@ -104,11 +132,11 @@ spec:
             existingClaim: media-shared-storage
             globalMounts:
               - path: /data
-                subPath: ""            
+                subPath: ""              
           tmp:
             enabled: true
             type: emptyDir
-            sizeLimit: 10Gi  
+            sizeLimit: 20Gi  # Increased for high-speed downloads and extraction
             globalMounts:
               - path: /tmp
 
