@@ -14,7 +14,8 @@ spec:
     helm:
       values: |          
         controllers:
-          radarr:            pod:
+          radarr:            
+            pod:
               securityContext:
                 runAsUser: 1000  # Standard media user ID
                 runAsGroup: 1000  # Standard media group ID
