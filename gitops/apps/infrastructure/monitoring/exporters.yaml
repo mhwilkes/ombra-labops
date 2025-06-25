@@ -1,0 +1,212 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wazuh-agents
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mhwilkes/ombra-labops.git
+    targetRevision: HEAD
+    path: gitops/apps/infrastructure/monitoring/agents
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wazuh-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: filebeat
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: filebeat
+    repoURL: https://helm.elastic.co
+    targetRevision: 8.15.4
+    helm:
+      releaseName: filebeat
+      values: |
+        # Filebeat configuration for log shipping to Wazuh
+        daemonset:
+          enabled: true
+          
+        image:
+          repository: docker.elastic.co/beats/filebeat
+          tag: 8.15.4
+          pullPolicy: IfNotPresent
+        
+        # Resource configuration
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        
+        # Filebeat configuration
+        filebeatConfig:
+          filebeat.yml: |
+            filebeat.inputs:
+            - type: container
+              paths:
+                - /var/log/containers/*.log
+              processors:
+                - add_kubernetes_metadata:
+                    host: ${NODE_NAME}
+                    matchers:
+                    - logs_path:
+                        logs_path: "/var/log/containers/"
+                - decode_json_fields:
+                    fields: ["message"]
+                    max_depth: 1
+                    target: ""
+                    overwrite_keys: true
+            
+            - type: log
+              paths:
+                - /var/log/audit/audit.log
+              fields:
+                logtype: "audit"
+                node: "${NODE_NAME}"
+              fields_under_root: true
+            
+            - type: log
+              paths:
+                - /var/log/syslog
+                - /var/log/messages
+              fields:
+                logtype: "system"
+                node: "${NODE_NAME}"
+              fields_under_root: true
+            
+            processors:
+              - add_host_metadata:
+                  when.not.contains.tags: forwarded
+              - add_cloud_metadata: ~
+              - add_docker_metadata: ~
+              - add_kubernetes_metadata: ~
+            
+            output.elasticsearch:
+              hosts: ["https://elasticsearch-master:9200"]
+              username: "elastic"
+              password: "wazuh123"
+              ssl.verification_mode: none
+              template.name: "wazuh"
+              template.pattern: "wazuh-alerts-*"
+              template.settings:
+                index.number_of_shards: 1
+                index.number_of_replicas: 0
+                index.refresh_interval: 5s
+            
+            setup.template.name: "wazuh"
+            setup.template.pattern: "wazuh-alerts-*"
+            setup.ilm.enabled: false
+            
+            logging.level: info
+            logging.to_files: true
+            logging.files:
+              path: /var/log/filebeat
+              name: filebeat.log
+              keepfiles: 7
+              permissions: 0644
+        
+        # Extra volume mounts for log collection
+        extraVolumeMounts:
+          - name: varlogcontainers
+            mountPath: /var/log/containers
+            readOnly: true
+          - name: varlogpods
+            mountPath: /var/log/pods
+            readOnly: true
+          - name: varlibdockercontainers
+            mountPath: /var/lib/docker/containers
+            readOnly: true
+          - name: varlogaudit
+            mountPath: /var/log/audit
+            readOnly: true
+          - name: varlogsystem
+            mountPath: /var/log/messages
+            readOnly: true
+        
+        extraVolumes:
+          - name: varlogcontainers
+            hostPath:
+              path: /var/log/containers
+          - name: varlogpods
+            hostPath:
+              path: /var/log/pods
+          - name: varlibdockercontainers
+            hostPath:
+              path: /var/lib/docker/containers
+          - name: varlogaudit
+            hostPath:
+              path: /var/log/audit
+          - name: varlogsystem
+            hostPath:
+              path: /var/log/messages
+        
+        # Security context
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        
+        # Environment variables
+        extraEnvs:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        
+        # Tolerations to run on all nodes
+        tolerations:
+          - effect: NoSchedule
+            operator: Exists
+          - effect: NoExecute
+            operator: Exists
+        
+        # Node selector
+        nodeSelector: {}
+        
+        # ServiceMonitor for monitoring Filebeat itself
+        serviceMonitor:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wazuh-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
