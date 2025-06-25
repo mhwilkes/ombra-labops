@@ -396,13 +396,10 @@ spec:
             cpu: 500m
             memory: 2Gi
         
-        # Service configuration with LoadBalancer
+        # Service configuration
         service:
-          type: LoadBalancer
+          type: ClusterIP
           port: 5601
-          loadBalancerIP: 192.168.55.216  # Static IP for Wazuh Dashboard
-          annotations:
-            metallb.universe.tf/allow-shared-ip: "wazuh-dashboard"
         
         # Ingress configuration
         ingress:
@@ -413,14 +410,14 @@ spec:
             nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
             cert-manager.io/cluster-issuer: letsencrypt-prod
           hosts:
-            - host: wazuh.ombra.local
+            - host: wazuh.michaelwilkes.dev
               paths:
                 - path: /
                   pathType: Prefix
           tls:
             - secretName: wazuh-dashboard-tls
               hosts:
-                - wazuh.ombra.local
+                - wazuh.michaelwilkes.dev
         
         # Environment variables
         env:
