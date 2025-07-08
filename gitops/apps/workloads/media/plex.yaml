@@ -17,10 +17,10 @@ spec:
           plex:
             pod:
               securityContext:
-                runAsUser: 2000
-                runAsGroup: 2000
+                runAsUser: 1000
+                runAsGroup: 1000
                 runAsNonRoot: true
-                fsGroup: 2000
+                fsGroup: 1000
                 fsGroupChangePolicy: "Always"
             containers:
               app:
@@ -29,8 +29,8 @@ spec:
                   tag: 1.41.8.9834                  
                 env:
                   TZ: America/New_York
-                  PLEX_UID: 2000
-                  PLEX_GID: 2000
+                  PLEX_UID: 1000
+                  PLEX_GID: 1000
                   TRANSCODE_PATH: /transcode
                   ADVERTISE_IP: "http://192.168.55.210:32400/"                  
                   PLEX_CLAIM:
