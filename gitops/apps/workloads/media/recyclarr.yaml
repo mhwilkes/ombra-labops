@@ -30,7 +30,6 @@ spec:
                   tag: 7.4.1
                 env:
                   TZ: America/New_York
-                  RECYCLARR_CONFIG_DIR: /config
                   RADARR_API_KEY:
                     valueFrom:
                       secretKeyRef:
@@ -43,6 +42,8 @@ spec:
                         key: SONARR_API_KEY
                 args:
                   - sync
+                  - --config
+                  - /app/recyclarr.yml
                 resources:
                   requests:
                     cpu: 10m
@@ -294,9 +295,10 @@ spec:
         persistence:
           config:
             type: configMap
-            name: recyclarr-config
+            name: '{{ include "app.name" . }}-config'
             globalMounts:
-              - path: /config
+              - path: /app/recyclarr.yml
+                subPath: recyclarr.yml
                 readOnly: true
           
           data:
