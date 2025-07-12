@@ -26,8 +26,7 @@
     ]
   },
   "docker": {
-    "enabled": true,
-    "fileMatch": ["gitops/.+\\.yaml$"]
+    "enabled": true
   },
   "customManagers": [
     {
@@ -66,24 +65,13 @@
       "matchHost": "ceph.github.io",
       "hostType": "helm"
     }
-  ],  "helmRepositories": [
-    {
-      "repository": "https://bjw-s-labs.github.io/helm-charts",
-      "name": "bjw-s"
-    },
-    {
-      "repository": "https://kubernetes.github.io/ingress-nginx",
-      "name": "ingress-nginx"
-    },
-    {
-      "repository": "https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/",
-      "name": "infisical"
-    },
-    {
-      "repository": "https://ceph.github.io/csi-charts",
-      "name": "ceph-csi"
-    }
   ],
+  "registryAliases": {
+    "bjw-s-labs.github.io/helm-charts": "https://bjw-s-labs.github.io/helm-charts",
+    "kubernetes.github.io/ingress-nginx": "https://kubernetes.github.io/ingress-nginx", 
+    "dl.cloudsmith.io/public/infisical/helm-charts/helm/charts": "https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/",
+    "ceph.github.io/csi-charts": "https://ceph.github.io/csi-charts"
+  },
   "packageRules": [
     {
       "description": "Automerge patch and minor Docker updates",
