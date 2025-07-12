@@ -44,11 +44,47 @@
       "description": "Match Helm chart versions in ArgoCD Applications",
       "fileMatch": ["gitops/.+\\.yaml$"],
       "matchStrings": [
-        "chart: (?<depName>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
+        "repoURL: (?<registryUrl>https://[^\\s]+)\\s+chart: (?<depName>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "helm"
     }
-  ],  "packageRules": [
+  ],
+  "hostRules": [
+    {
+      "matchHost": "bjw-s-labs.github.io",
+      "hostType": "helm"
+    },
+    {
+      "matchHost": "kubernetes.github.io",
+      "hostType": "helm"
+    },
+    {
+      "matchHost": "dl.cloudsmith.io",
+      "hostType": "helm"
+    },
+    {
+      "matchHost": "ceph.github.io",
+      "hostType": "helm"
+    }
+  ],  "helmRepositories": [
+    {
+      "repository": "https://bjw-s-labs.github.io/helm-charts",
+      "name": "bjw-s"
+    },
+    {
+      "repository": "https://kubernetes.github.io/ingress-nginx",
+      "name": "ingress-nginx"
+    },
+    {
+      "repository": "https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/",
+      "name": "infisical"
+    },
+    {
+      "repository": "https://ceph.github.io/csi-charts",
+      "name": "ceph-csi"
+    }
+  ],
+  "packageRules": [
     {
       "description": "Automerge patch and minor Docker updates",
       "matchDatasources": ["docker"],
@@ -114,6 +150,30 @@
       "matchPackageNames": ["app-template"],
       "matchDatasources": ["helm"],
       "groupName": "BJW-S App Template",
+      "automerge": false,
+      "schedule": ["on sunday"]
+    },
+    {
+      "description": "NGINX Ingress Controller updates",
+      "matchPackageNames": ["ingress-nginx"],
+      "matchDatasources": ["helm"],
+      "groupName": "NGINX Ingress",
+      "automerge": false,
+      "schedule": ["on sunday"]
+    },
+    {
+      "description": "Infisical Secrets Operator updates", 
+      "matchPackageNames": ["secrets-operator"],
+      "matchDatasources": ["helm"],
+      "groupName": "Secrets Management",
+      "automerge": false,
+      "schedule": ["on sunday"]
+    },
+    {
+      "description": "Ceph CSI updates",
+      "matchPackageNames": ["ceph-csi-rbd", "ceph-csi-cephfs"],
+      "matchDatasources": ["helm"],
+      "groupName": "Ceph Storage",
       "automerge": false,
       "schedule": ["on sunday"]
     }
