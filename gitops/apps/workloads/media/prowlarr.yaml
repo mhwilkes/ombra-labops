@@ -10,11 +10,14 @@ spec:
   source:
     repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
-    targetRevision: 3.5.1
+    targetRevision: 4.1.2
     helm:
       values: |        
         controllers:
-          prowlarr:            pod:
+          prowlarr:
+            type: deployment
+            strategy: Recreate            
+            pod:
               securityContext:
                 runAsUser: 1000  # Standard media user ID
                 runAsGroup: 1000  # Standard media group ID

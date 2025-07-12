@@ -10,11 +10,13 @@ spec:
   source:
     repoURL: https://bjw-s-labs.github.io/helm-charts
     chart: app-template
-    targetRevision: 3.5.1
+    targetRevision: 4.1.2
     helm:
       values: |
         controllers:
           recyclarr:
+            type: deployment
+            strategy: Recreate
             type: cronjob
             cronjob:
               schedule: "0 */6 * * *"  # Run every 6 hours
