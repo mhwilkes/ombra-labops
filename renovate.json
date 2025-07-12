@@ -1,0 +1,162 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeDigests",
+    ":automergeBranch"
+  ],
+  "timezone": "America/New_York",
+  "schedule": [
+    "after 10pm every weekday",
+    "before 5am every weekday",
+    "every weekend"
+  ],
+  "labels": ["dependencies", "renovate"],
+  "commitMessagePrefix": "chore:",
+  "commitMessageTopic": "update {{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "prTitle": "chore: update {{depName}} to {{newVersion}}",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}",
+  "kubernetes": {
+    "fileMatch": [
+      "cluster-infrastructure/.+\\.yaml$",
+      "gitops/.+\\.yaml$"
+    ]
+  },
+  "helm-values": {
+    "fileMatch": [
+      "cluster-infrastructure/.+\\.yaml$", 
+      "gitops/.+\\.yaml$"
+    ]
+  },
+  "docker": {
+    "enabled": true,
+    "fileMatch": ["gitops/.+\\.yaml$"]
+  },
+  "regexManagers": [
+    {
+      "description": "Match ArgoCD Application image references",
+      "fileMatch": ["gitops/.+\\.yaml$"],
+      "matchStrings": [
+        "repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)",
+        "image:\\s+repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "description": "Match Helm chart versions in ArgoCD Applications",
+      "fileMatch": ["gitops/.+\\.yaml$"],
+      "matchStrings": [
+        "chart: (?<depName>[^\\s]+)\\s+repoURL: (?<registryUrl>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "helm"
+    },
+    {
+      "description": "Match targetRevision for Helm charts",
+      "fileMatch": ["gitops/.+\\.yaml$"],
+      "matchStrings": [
+        "repoURL: https://(?<registryUrl>[^/]+)/(?<repo>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)\\s+helm:\\s+releaseName: [^\\s]+\\s+values:"
+      ],
+      "datasourceTemplate": "helm"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Automerge patch and minor Docker updates",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Manual approval for major Docker updates",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "schedule": ["on sunday"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Manual approval for all Helm chart updates",
+      "matchDatasources": ["helm"],
+      "automerge": false,
+      "schedule": ["on sunday"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Group Wazuh updates",
+      "matchPackagePatterns": ["wazuh"],
+      "groupName": "Wazuh Security Platform",
+      "schedule": ["on sunday"],
+      "automerge": false
+    },
+    {
+      "description": "Group Media Services updates",
+      "matchPackagePatterns": [
+        "plex",
+        "radarr", 
+        "sonarr",
+        "bazarr",
+        "prowlarr",
+        "overseerr",
+        "tautulli",
+        "qbittorrent",
+        "sabnzbd",
+        "maintainerr"
+      ],
+      "groupName": "Media Services",
+      "schedule": ["on sunday"],
+      "automerge": false
+    },
+    {
+      "description": "Group Elasticsearch/OpenSearch updates",
+      "matchPackagePatterns": ["elasticsearch", "opensearch"],
+      "groupName": "Search and Analytics",
+      "schedule": ["on sunday"],
+      "automerge": false
+    },
+    {
+      "description": "Group ArgoCD updates",
+      "matchPackagePatterns": ["argo"],
+      "groupName": "ArgoCD GitOps",
+      "schedule": ["on sunday"],
+      "automerge": false
+    },
+    {
+      "description": "Group Infrastructure components",
+      "matchPackagePatterns": [
+        "cert-manager",
+        "metallb",
+        "nginx",
+        "rook",
+        "ceph"
+      ],
+      "groupName": "Infrastructure Components",
+      "schedule": ["on sunday"],
+      "automerge": false
+    },
+    {
+      "description": "BJW-S App Template updates",
+      "matchPackageNames": ["app-template"],
+      "matchDatasources": ["helm"],
+      "groupName": "BJW-S App Template",
+      "automerge": false,
+      "schedule": ["on sunday"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"],
+    "automerge": true
+  },
+  "osvVulnerabilityAlerts": true,
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🤖 Dependency Dashboard",
+  "dependencyDashboardHeader": "This issue lists Renovate updates and detected dependencies for your lab operations cluster. Read the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) docs to learn more.\n\n**Note**: Updates are scheduled for off-peak hours and weekends to minimize disruption to your lab environment.",
+  "dependencyDashboardApproval": true,
+  "dependencyDashboardAutoclose": true,
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2
+}
