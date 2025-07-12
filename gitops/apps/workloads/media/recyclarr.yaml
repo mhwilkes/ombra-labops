@@ -43,8 +43,6 @@ spec:
                         key: SONARR_API_KEY
                 args:
                   - sync
-                  - --config
-                  - /config/recyclarr.yml
                 resources:
                   requests:
                     cpu: 10m
@@ -298,8 +296,7 @@ spec:
             type: configMap
             name: recyclarr-config
             globalMounts:
-              - path: /config/recyclarr.yml
-                subPath: recyclarr.yml
+              - path: /config
                 readOnly: true
           
           data:
