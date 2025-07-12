@@ -68,7 +68,7 @@ spec:
               enabled: true
               image:
                 repository: registry.k8s.io/ingress-nginx/kube-webhook-certgen
-                tag: v20230407
+                tag: v20230626
                 digest: sha256:543c40fd093964bc9ab509d3e791f9989963021f10de6ce233b36b4b06abc787
               priorityClassName: ""
               podAnnotations: {}
