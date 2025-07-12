@@ -3,9 +3,7 @@
   "extends": [
     "config:recommended",
     ":dependencyDashboard",
-    ":semanticCommits",
-    ":automergeDigests",
-    ":automergeBranch"
+    ":semanticCommits"
   ],
   "timezone": "America/New_York",
   "schedule": [
@@ -14,10 +12,6 @@
     "every weekend"
   ],
   "labels": ["dependencies", "renovate"],
-  "commitMessagePrefix": "chore:",
-  "commitMessageTopic": "update {{depName}}",
-  "commitMessageExtra": "to {{newVersion}}",
-  "prTitle": "chore: update {{depName}} to {{newVersion}}",
   "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}",
   "kubernetes": {
     "fileMatch": [
@@ -35,40 +29,31 @@
     "enabled": true,
     "fileMatch": ["gitops/.+\\.yaml$"]
   },
-  "regexManagers": [
+  "customManagers": [
     {
+      "customType": "regex",
       "description": "Match ArgoCD Application image references",
       "fileMatch": ["gitops/.+\\.yaml$"],
       "matchStrings": [
-        "repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)",
-        "image:\\s+repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)"
+        "repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker"
     },
     {
+      "customType": "regex", 
       "description": "Match Helm chart versions in ArgoCD Applications",
       "fileMatch": ["gitops/.+\\.yaml$"],
       "matchStrings": [
-        "chart: (?<depName>[^\\s]+)\\s+repoURL: (?<registryUrl>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
-      ],
-      "datasourceTemplate": "helm"
-    },
-    {
-      "description": "Match targetRevision for Helm charts",
-      "fileMatch": ["gitops/.+\\.yaml$"],
-      "matchStrings": [
-        "repoURL: https://(?<registryUrl>[^/]+)/(?<repo>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)\\s+helm:\\s+releaseName: [^\\s]+\\s+values:"
+        "chart: (?<depName>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "helm"
     }
-  ],
-  "packageRules": [
+  ],  "packageRules": [
     {
       "description": "Automerge patch and minor Docker updates",
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true,
-      "automergeType": "pr"
+      "automerge": true
     },
     {
       "description": "Manual approval for major Docker updates",
@@ -96,7 +81,7 @@
       "description": "Group Media Services updates",
       "matchPackagePatterns": [
         "plex",
-        "radarr", 
+        "radarr",
         "sonarr",
         "bazarr",
         "prowlarr",
@@ -111,29 +96,16 @@
       "automerge": false
     },
     {
-      "description": "Group Elasticsearch/OpenSearch updates",
-      "matchPackagePatterns": ["elasticsearch", "opensearch"],
-      "groupName": "Search and Analytics",
-      "schedule": ["on sunday"],
-      "automerge": false
-    },
-    {
-      "description": "Group ArgoCD updates",
-      "matchPackagePatterns": ["argo"],
-      "groupName": "ArgoCD GitOps",
-      "schedule": ["on sunday"],
-      "automerge": false
-    },
-    {
       "description": "Group Infrastructure components",
       "matchPackagePatterns": [
         "cert-manager",
         "metallb",
         "nginx",
         "rook",
-        "ceph"
+        "ceph",
+        "argo"
       ],
-      "groupName": "Infrastructure Components",
+      "groupName": "Infrastructure Components", 
       "schedule": ["on sunday"],
       "automerge": false
     },
