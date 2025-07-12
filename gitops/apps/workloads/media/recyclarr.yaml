@@ -295,7 +295,7 @@ spec:
         persistence:
           config:
             type: configMap
-            name: '{{ include "app.name" . }}-config'
+            name: '{{ include "app.name" . }}'
             globalMounts:
               - path: /app/recyclarr.yml
                 subPath: recyclarr.yml
