@@ -55,7 +55,7 @@ spec:
           
         image:
           repository: docker.elastic.co/beats/filebeat
-          tag: 9.0.3
+          tag: 9.0.4
           pullPolicy: IfNotPresent
         
         # Resource configuration
