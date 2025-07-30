@@ -5,6 +5,9 @@ metadata:
   name: wazuh-system
   labels:
     name: wazuh-system
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
