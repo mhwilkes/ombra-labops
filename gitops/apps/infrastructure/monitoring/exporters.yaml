@@ -53,11 +53,6 @@ spec:
         daemonset:
           enabled: true
           
-        image:
-          repository: docker.elastic.co/beats/filebeat
-          tag: 8.5.1
-          pullPolicy: IfNotPresent
-        
         # Resource configuration
         resources:
           requests:
@@ -85,23 +80,6 @@ spec:
                     max_depth: 1
                     target: ""
                     overwrite_keys: true
-            
-            - type: log
-              paths:
-                - /var/log/audit/audit.log
-              fields:
-                logtype: "audit"
-                node: "${NODE_NAME}"
-              fields_under_root: true
-            
-            - type: log
-              paths:
-                - /var/log/syslog
-                - /var/log/messages
-              fields:
-                logtype: "system"
-                node: "${NODE_NAME}"
-              fields_under_root: true
             
             processors:
               - add_host_metadata:
@@ -134,52 +112,10 @@ spec:
               keepfiles: 7
               permissions: 0644
         
-        # Extra volume mounts for log collection
-        extraVolumeMounts:
-          - name: varlogcontainers
-            mountPath: /var/log/containers
-            readOnly: true
-          - name: varlogpods
-            mountPath: /var/log/pods
-            readOnly: true
-          - name: varlibdockercontainers
-            mountPath: /var/lib/docker/containers
-            readOnly: true
-          - name: varlogaudit
-            mountPath: /var/log/audit
-            readOnly: true
-          - name: varlogsystem
-            mountPath: /var/log/messages
-            readOnly: true
-        
-        extraVolumes:
-          - name: varlogcontainers
-            hostPath:
-              path: /var/log/containers
-          - name: varlogpods
-            hostPath:
-              path: /var/log/pods
-          - name: varlibdockercontainers
-            hostPath:
-              path: /var/lib/docker/containers
-          - name: varlogaudit
-            hostPath:
-              path: /var/log/audit
-          - name: varlogsystem
-            hostPath:
-              path: /var/log/messages
-        
         # Security context
         securityContext:
           runAsUser: 0
           privileged: true
-        
-        # Environment variables
-        extraEnvs:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
         
         # Tolerations to run on all nodes
         tolerations:
@@ -187,9 +123,6 @@ spec:
             operator: Exists
           - effect: NoExecute
             operator: Exists
-        
-        # Node selector
-        nodeSelector: {}
         
         # ServiceMonitor for monitoring Filebeat itself
         serviceMonitor:
