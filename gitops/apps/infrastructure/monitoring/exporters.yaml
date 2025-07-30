@@ -45,7 +45,7 @@ spec:
   source:
     chart: filebeat
     repoURL: https://helm.elastic.co
-    targetRevision: 8.15.4
+    targetRevision: 8.5.1
     helm:
       releaseName: filebeat
       values: |
@@ -55,7 +55,7 @@ spec:
           
         image:
           repository: docker.elastic.co/beats/filebeat
-          tag: 9.0.4
+          tag: 8.5.1
           pullPolicy: IfNotPresent
         
         # Resource configuration
