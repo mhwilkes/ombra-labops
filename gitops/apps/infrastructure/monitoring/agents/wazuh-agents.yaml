@@ -23,7 +23,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: wazuh-agent
-        image: wazuh/wazuh-agent:4.9.0
+        image: wazuh/wazuh-agent:4.12.0
         imagePullPolicy: IfNotPresent
         resources:
           requests:
