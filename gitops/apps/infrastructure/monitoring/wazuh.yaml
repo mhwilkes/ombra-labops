@@ -88,13 +88,6 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-        
-        # Create initial admin user
-        extraEnvs:
-          - name: ELASTIC_PASSWORD
-            value: "wazuh123"  # Change this in production
-          - name: bootstrap.password
-            value: "wazuh123"
   destination:
     server: https://kubernetes.default.svc
     namespace: wazuh-system
