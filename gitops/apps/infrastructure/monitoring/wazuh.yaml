@@ -71,7 +71,6 @@ spec:
         
         # Security context
         securityContext:
-          fsGroup: 1000
           runAsUser: 1000
         
         # Node selector and tolerations
