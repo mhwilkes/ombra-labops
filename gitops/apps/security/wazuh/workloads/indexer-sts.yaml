@@ -20,7 +20,7 @@ spec:
         - name: indexer-certs
           secret:
             secretName: indexer-certs
-            defaultMode: 0600
+            defaultMode: 0640
         - name: indexer-conf
           configMap:
             name: indexer-conf
