@@ -98,6 +98,19 @@ spec:
               mountPath: /usr/share/wazuh-indexer/config/certs/admin-key.pem
               subPath: admin-key.pem
               readOnly: true
+            # Also mount certs where the OpenSearch security plugin expects them by default
+            - name: indexer-certs
+              mountPath: /etc/wazuh-indexer/certs/indexer.pem
+              subPath: node.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /etc/wazuh-indexer/certs/indexer-key.pem
+              subPath: node-key.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /etc/wazuh-indexer/certs/root-ca.pem
+              subPath: root-ca.pem
+              readOnly: true
             - name: indexer-conf
               mountPath: /usr/share/wazuh-indexer/config/opensearch.yml
               subPath: opensearch.yml
