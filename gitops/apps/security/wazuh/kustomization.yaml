@@ -28,3 +28,4 @@ resources:
   - workloads/wazuh-master-sts.yaml
   - workloads/wazuh-worker-sts.yaml
   - workloads/indexer-sts.yaml
+  - workloads/dashboard-deploy.yaml
