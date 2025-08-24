@@ -7,9 +7,8 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    # ArgoCD server uses gRPC-web, so we need special handling
-    nginx.ingress.kubernetes.io/grpc-backend: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    # Send HTTPS to the argocd-server Service (upstream 443)
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
   tls:
@@ -26,4 +25,4 @@ spec:
           service:
             name: argocd-server
             port:
-              number: 80
+              name: https
