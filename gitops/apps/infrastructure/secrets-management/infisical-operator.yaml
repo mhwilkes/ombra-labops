@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/
     chart: secrets-operator
-    targetRevision: 0.9.4
+    targetRevision: 0.10.2
     helm:
       values: |
         # Infisical Secrets Operator configuration
