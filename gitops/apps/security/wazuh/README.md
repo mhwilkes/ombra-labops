@@ -1,0 +1,56 @@
+# Wazuh on Kubernetes (GitOps via Argo CD)
+
+This folder wires the official Wazuh Kubernetes manifests (v4.12.0) into your cluster using Kustomize and Argo CD.
+
+What’s included:
+
+- Upstream resources for Wazuh namespace, services, StatefulSets (indexer, managers) and dashboard.
+- ConfigMaps for indexer, dashboard, and Wazuh manager configs.
+- Secrets for credentials and cluster keys (demo values by default; replace via your secret management).
+- A Ceph-backed StorageClass named `wazuh-storage` used by Wazuh PVCs.
+
+Prereqs:
+
+- StorageClass `wazuh-storage` points to your Ceph RBD cluster (`ceph-csi-rbd`). Adjust `storageclass-wazuh.yaml` if needed.
+- Certs must be generated and placed in `certs/` so Kustomize can create `indexer-certs` and `dashboard-certs` secrets.
+
+TLS certificates (per Wazuh docs):
+
+- Generate indexer certs (root CA, admin, node, dashboard, filebeat). You can use the upstream script for guidance.
+- Generate dashboard HTTPS cert/key.
+- Place files under:
+  - certs/indexer_cluster/{root-ca.pem,node.pem,node-key.pem,dashboard.pem,dashboard-key.pem,admin.pem,admin-key.pem,filebeat.pem,filebeat-key.pem}
+  - certs/dashboard_http/{cert.pem,key.pem}
+
+Kustomize will then create:
+
+- Secret `indexer-certs` with the indexer and related certs.
+- Secret `dashboard-certs` with dashboard cert/key and root-ca.
+
+Credentials and keys:
+
+- `secrets/indexer-cred-secret.yaml` (admin/SecretPassword) – change via your secret manager.
+- `secrets/dashboard-cred-secret.yaml` (kibanaserver/kibanaserver) – change via your secret manager.
+- `secrets/wazuh-api-cred-secret.yaml` (wazuh-wui/…) – change via your secret manager.
+- `secrets/wazuh-authd-pass-secret.yaml` (agent enrollment password) – change in production.
+- `secrets/wazuh-cluster-key-secret.yaml` – set a strong random key.
+
+Apply (Argo CD manages this):
+
+- Argo CD Application at `gitops/apps/security-wazuh.yaml` points here. Once synced, it deploys Wazuh.
+
+Post-deploy checks (from docs):
+
+- Namespace `wazuh` exists; indexer StatefulSet 3/3 ready; manager master 1/1; workers 2/2; dashboard 1/1.
+- Services `wazuh`, `wazuh-workers` (type LoadBalancer), `indexer` (9200), `wazuh-indexer` (headless 9300), and `dashboard` (HTTPS 443) are created.
+
+Security hardening:
+
+- Rotate all default passwords and hashes. Update `internal_users.yml` and related secrets, then re-apply.
+- Consider sourcing all secrets from Infisical or sealed-secrets instead of plain YAML.
+
+References:
+
+- [Wazuh deployment on Kubernetes](https://documentation.wazuh.com/current/deployment-options/deploying-with-kubernetes/kubernetes-deployment.html)
+- [Wazuh Kubernetes configuration](https://documentation.wazuh.com/current/deployment-options/deploying-with-kubernetes/kubernetes-conf.html)
+- [wazuh/wazuh-kubernetes v4.12.0](https://github.com/wazuh/wazuh-kubernetes/tree/v4.12.0)

@@ -1,0 +1,9 @@
+# Ignore generated TLS certs and keys
+certs/indexer_cluster/*.pem
+certs/dashboard_http/*.pem
+certs/dashboard_http/*.key
+certs/indexer_cluster/*.keycerts/indexer_cluster/*
+certs/dashboard_http/*
+!certs/
+!certs/indexer_cluster/
+!certs/dashboard_http/
