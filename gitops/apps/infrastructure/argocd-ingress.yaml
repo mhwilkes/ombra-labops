@@ -11,8 +11,8 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     # Argo CD uses a self-signed cert by default; don't verify upstream
     nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
-  # Enable gRPC for Argo CD CLI over ingress
-  nginx.ingress.kubernetes.io/grpc-backend: "true"
+    # Enable gRPC for Argo CD CLI over ingress
+    nginx.ingress.kubernetes.io/grpc-backend: "true"
 spec:
   ingressClassName: nginx
   tls:
