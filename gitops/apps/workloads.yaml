@@ -17,8 +17,6 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-  dependsOn:
-  - storage  # Media stack needs shared storage for downloads, media library, and configurations
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
