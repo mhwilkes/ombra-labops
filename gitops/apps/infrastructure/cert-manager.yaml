@@ -7,6 +7,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
+  source:
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.18.2
+    helm:
+      values: |
         # Install CRDs
         installCRDs: true
 
@@ -24,21 +30,16 @@ spec:
             memory: 32Mi
 
         # Webhook configuration
-          extraArgs:
-          replicaCount: 1
-            - --v=2
-
-        # Webhook configuration
         webhook:
           replicaCount: 1
           resources:
             limits:
-
-        # CA Injector configuration
+              cpu: 100m
+              memory: 128Mi
             requests:
-          replicaCount: 1
+              cpu: 10m
               memory: 32Mi
-        
+
         # CA Injector configuration
         cainjector:
           replicaCount: 1
@@ -49,7 +50,8 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
-          # Prometheus monitoring - disabled until Prometheus Operator is installed
+
+        # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
           enabled: false
           servicemonitor:
