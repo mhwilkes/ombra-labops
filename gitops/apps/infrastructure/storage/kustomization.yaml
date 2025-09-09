@@ -5,6 +5,7 @@ resources:
   - ceph-secrets.yaml
   - ceph-csi.yaml
 
-commonLabels:
-  app.kubernetes.io/part-of: storage
-  app.kubernetes.io/managed-by: argocd
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: storage
+      app.kubernetes.io/managed-by: argocd

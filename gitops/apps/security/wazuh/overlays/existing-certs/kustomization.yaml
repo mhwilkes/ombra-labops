@@ -3,13 +3,16 @@ kind: Kustomization
 
 namespace: wazuh
 
-commonLabels:
-  app.kubernetes.io/part-of: wazuh
-  app.kubernetes.io/managed-by: argocd
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: wazuh
+      app.kubernetes.io/managed-by: argocd
 
-# Use the base and override behavior for certs to rely on pre-existing Secrets
 resources:
-  - ../../
+  # Use the explicit base and bring in overlay-specific resources
+  - ../../base
+  # Bring in certs from Infisical instead of generating in base
+  - ../../secrets
 
 # Remove Secret generators from the base so we can use existing Secrets
 patches:
