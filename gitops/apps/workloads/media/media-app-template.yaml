@@ -51,9 +51,6 @@ spec:
                 securityContext:
                   runAsUser: 0  # Run as root to set permissions
                   runAsGroup: 0
-                volumeMounts:
-                  - name: shared-data
-                    mountPath: /data
             containers:
               app:                
                 image:
