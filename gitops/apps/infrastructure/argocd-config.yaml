@@ -7,8 +7,8 @@ metadata:
     app.kubernetes.io/name: argocd-cmd-params-cm
     app.kubernetes.io/part-of: argocd
 data:
-  # Run server without TLS since ingress will handle it
-  server.insecure: "true"
+  # Run server with TLS enabled (ingress terminates client TLS, but upstream to service is HTTPS)
+  server.insecure: "false"
 ---
 apiVersion: v1
 kind: ConfigMap
