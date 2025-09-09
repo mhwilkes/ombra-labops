@@ -95,13 +95,6 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Group Wazuh updates",
-      "matchPackagePatterns": ["wazuh"],
-      "groupName": "Wazuh Security Platform",
-      "schedule": ["on sunday"],
-      "automerge": false
-    },
-    {
       "description": "Group Media Services updates",
       "matchPackagePatterns": [
         "plex",

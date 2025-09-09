@@ -7,12 +7,13 @@ This repository uses [Renovate](https://docs.renovatebot.com/) to automatically 
 Renovate is configured to monitor and update:
 
 ### Container Images
+
 - **Media Services**: Plex, Radarr, Sonarr, Bazarr, Prowlarr, Overseerr, Tautulli, qBittorrent, SABnzbd, Maintainerr
-- **Security Monitoring**: Wazuh Manager, Wazuh Dashboard
 - **Search & Analytics**: Elasticsearch/OpenSearch
 - **Infrastructure**: ArgoCD, cert-manager, MetalLB, NGINX, Rook-Ceph
 
 ### Helm Charts
+
 - BJW-S App Template charts
 - Official Helm charts from various repositories
 - Custom chart configurations in ArgoCD Applications
@@ -20,11 +21,13 @@ Renovate is configured to monitor and update:
 ## Update Strategy
 
 ### Automatic Updates
+
 - **Patch and Minor versions** for container images are auto-merged
 - **Security vulnerabilities** are immediately updated
 - Updates are scheduled during off-peak hours (after 10pm weekdays, weekends)
 
 ### Manual Approval Required
+
 - **Major version updates** for all components
 - **All Helm chart updates** (safer for infrastructure changes)
 - Updates requiring manual approval appear in the Dependency Dashboard
@@ -46,12 +49,14 @@ Renovate is configured to monitor and update:
 
 To use this Renovate configuration, you need to create a Personal Access Token and add it as a repository secret:
 
-### Required Secret:
+### Required Secret
+
 - `RENOVATE_TOKEN` - GitHub Personal Access Token with the following permissions:
   - `repo` (Full control of private repositories)
   - `workflow` (Update GitHub Action workflows)
 
-### How to Create the PAT:
+### How to Create the PAT
+
 1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
 2. Click "Generate new token (classic)"
 3. Set expiration (recommend 1 year)
@@ -60,7 +65,8 @@ To use this Renovate configuration, you need to create a Personal Access Token a
    - ✅ `workflow` (Update GitHub Action workflows)
 5. Generate token and copy it
 
-### How to Add the Secret:
+### How to Add the Secret
+
 1. Go to your repository → Settings → Secrets and variables → Actions
 2. Click "New repository secret"
 3. Name: `RENOVATE_TOKEN`
@@ -75,6 +81,7 @@ To use this Renovate configuration, you need to create a Personal Access Token a
 ## Dependency Dashboard
 
 Renovate creates and maintains a "Dependency Dashboard" issue in your repository that shows:
+
 - Pending updates awaiting approval
 - Failed update attempts
 - Configuration errors
@@ -98,5 +105,6 @@ To modify how Renovate handles specific dependencies:
 ## Disabling Renovate
 
 To temporarily disable Renovate:
+
 - Disable the GitHub Actions workflow
 - Or add `"enabled": false` to `renovate.json`
