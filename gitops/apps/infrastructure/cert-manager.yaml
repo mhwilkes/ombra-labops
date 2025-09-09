@@ -20,9 +20,10 @@ spec:
         global:
           leaderElection:
             namespace: cert-manager
-          # Controller configuration
-        controller:
-          replicas: 1
+        
+        # cert-manager controller configuration
+        cert-manager:
+          replicaCount: 1
           resources:
             limits:
               cpu: 100m
@@ -30,13 +31,14 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
-          # Enable feature gates for better integration
-          featureGates: "AdditionalCertificateOutputFormats=true"
-          # Enable additional logging for troubleshooting
-          logLevel: 2
-          # Webhook configuration
+          # Enable feature gates and set log level via extraArgs
+          extraArgs:
+            - --feature-gates=AdditionalCertificateOutputFormats=true
+            - --v=2
+
+        # Webhook configuration
         webhook:
-          replicas: 1
+          replicaCount: 1
           resources:
             limits:
               cpu: 100m
@@ -44,12 +46,10 @@ spec:
             requests:
               cpu: 10m
               memory: 32Mi
-          # Enable feature gates for nginx-ingress integration
-          featureGates: "AdditionalCertificateOutputFormats=true"
         
         # CA Injector configuration
         cainjector:
-          replicas: 1
+          replicaCount: 1
           resources:
             limits:
               cpu: 100m
