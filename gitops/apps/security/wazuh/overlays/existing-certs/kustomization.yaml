@@ -7,15 +7,15 @@ labels:
   - pairs:
       app.kubernetes.io/part-of: wazuh
       app.kubernetes.io/managed-by: argocd
+    includeSelectors: false
 
 resources:
-  # Use the explicit base and bring in overlay-specific resources
   - ../../base
-  # Bring in certs from Infisical instead of generating in base
   - ../../secrets
+  - ./namespace.yaml
 
-# Remove Secret generators from the base so we can use existing Secrets
 patches:
+  # Remove Secret generators from the base so we can use existing Secrets
   - target:
       group: ""
       version: v1
@@ -38,3 +38,53 @@ patches:
       metadata:
         name: dashboard-certs
       $patch: delete
+
+  # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec)
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: wazuh-dashboard
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: wazuh-dashboard
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-indexer
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-indexer
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-master
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-master
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-worker
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-worker
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true

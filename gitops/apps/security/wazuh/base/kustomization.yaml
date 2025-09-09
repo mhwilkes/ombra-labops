@@ -7,6 +7,7 @@ labels:
   - pairs:
       app.kubernetes.io/part-of: wazuh
       app.kubernetes.io/managed-by: argocd
+    includeSelectors: false
 
 resources:
   # Storage class
