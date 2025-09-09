@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/mhwilkes/ombra-labops.git
     targetRevision: HEAD
-    path: gitops/apps/security/wazuh
+    path: gitops/apps/security/wazuh/overlays/existing-certs
   destination:
     server: https://kubernetes.default.svc
     namespace: wazuh
