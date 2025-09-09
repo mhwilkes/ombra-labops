@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wazuh-dashboard
+  namespace: wazuh
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # If the upstream uses a private CA, disable verification or provide a CA secret
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+spec:
+  tls:
+    - hosts:
+        - wazuh.michaelwilkes.dev
+      secretName: wazuh-dashboard-tls
+  rules:
+    - host: wazuh.michaelwilkes.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard
+                port:
+                  number: 443

@@ -13,6 +13,8 @@ resources:
   - ../../base
   - ../../secrets
   - ./namespace.yaml
+  - ./ingress-dashboard.yaml
+  - ./ingress-api.yaml
 
 patches:
   # Remove Secret generators from the base so we can use existing Secrets
