@@ -7,33 +7,25 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
-  source:
-    repoURL: https://charts.jetstack.io
-    chart: cert-manager
-    targetRevision: v1.18.2
-    helm:
-      values: |
         # Install CRDs
         installCRDs: true
-        
-        # Global configuration
-        global:
-          leaderElection:
-            namespace: cert-manager
-        
-        # cert-manager controller configuration
-        cert-manager:
-          replicaCount: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 10m
-              memory: 32Mi
-          # Enable feature gates and set log level via extraArgs
+
+        # cert-manager (controller) configuration
+        logLevel: 2
+        featureGates: "AdditionalCertificateOutputFormats=true"
+        leaderElection:
+          namespace: cert-manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+
+        # Webhook configuration
           extraArgs:
-            - --feature-gates=AdditionalCertificateOutputFormats=true
+          replicaCount: 1
             - --v=2
 
         # Webhook configuration
@@ -41,10 +33,10 @@ spec:
           replicaCount: 1
           resources:
             limits:
-              cpu: 100m
-              memory: 128Mi
+
+        # CA Injector configuration
             requests:
-              cpu: 10m
+          replicaCount: 1
               memory: 32Mi
         
         # CA Injector configuration
