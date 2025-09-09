@@ -11,12 +11,12 @@ resources:
   # Storage class for Wazuh PVCs (uses Ceph RBD pool "configs" by default here)
   - storageclass-wazuh.yaml
 
-  # Secrets: credentials and cluster keys (with default demo values; override in your secrets management)
-  - secrets/wazuh-api-cred-secret.yaml
-  - secrets/wazuh-authd-pass-secret.yaml
-  - secrets/wazuh-cluster-key-secret.yaml
-  - secrets/dashboard-cred-secret.yaml
-  - secrets/indexer-cred-secret.yaml
+  # Secrets managed by Infisical (replace static Secrets)
+  - secrets/indexer-cred-infisical.yaml
+  - secrets/dashboard-cred-infisical.yaml
+  - secrets/wazuh-api-cred-infisical.yaml
+  - secrets/wazuh-authd-pass-infisical.yaml
+  - secrets/wazuh-cluster-key-infisical.yaml
 
   # Services and StatefulSets/Deployments from upstream Wazuh
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-cluster-svc.yaml
