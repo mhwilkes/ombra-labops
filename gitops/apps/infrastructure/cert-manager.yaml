@@ -21,39 +21,13 @@ spec:
           leaderElection:
             namespace: cert-manager
 
-        # Controller configuration via ControllerConfiguration CR
-        config:
-          logging:
-            verbosity: 2
-        resources:
-          limits:
-            cpu: 100m
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 32Mi
-
         # Webhook configuration
         webhook:
           replicaCount: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 10m
-              memory: 32Mi
 
         # CA Injector configuration
         cainjector:
           replicaCount: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 10m
-              memory: 32Mi
 
         # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
