@@ -11,10 +11,6 @@ spec:
     repoURL: https://github.com/mhwilkes/ombra-labops.git
     targetRevision: HEAD
     path: gitops/apps/infrastructure/storage
-    helm:
-      parameters:
-      - name: clusterID
-        value: "ombra-ceph"
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
