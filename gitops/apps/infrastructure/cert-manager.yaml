@@ -15,12 +15,16 @@ spec:
       values: |
         # Install CRDs
         installCRDs: true
+        
+        # Global configuration
+        global:
+          leaderElection:
+            namespace: cert-manager
 
-        # cert-manager (controller) configuration
-        logLevel: 2
-        featureGates: "AdditionalCertificateOutputFormats=true"
-        leaderElection:
-          namespace: cert-manager
+        # Controller configuration via ControllerConfiguration CR
+        config:
+          logging:
+            verbosity: 2
         resources:
           limits:
             cpu: 100m
