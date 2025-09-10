@@ -14,6 +14,7 @@ resources:
   - ./namespace.yaml
   - ./ingress-dashboard.yaml
   - ./ingress-api.yaml
+  - ./certificate-dashboard-public.yaml
 
 patches:
   # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec) and tune resources

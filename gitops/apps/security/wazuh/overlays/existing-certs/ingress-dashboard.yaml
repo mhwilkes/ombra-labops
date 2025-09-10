@@ -15,7 +15,9 @@ spec:
   tls:
     - hosts:
         - wazuh.michaelwilkes.dev
-      secretName: wazuh-dashboard-tls
+      # Use a distinct secret for the public (Let's Encrypt) certificate so we don't
+      # collide with the internally-issued dashboard cert used inside the pod.
+      secretName: wazuh-dashboard-public-tls
   rules:
     - host: wazuh.michaelwilkes.dev
       http:

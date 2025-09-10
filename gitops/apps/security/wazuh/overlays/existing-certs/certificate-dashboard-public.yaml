@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-dashboard-public
+  namespace: wazuh
+spec:
+  secretName: wazuh-dashboard-public-tls
+  dnsNames:
+    - wazuh.michaelwilkes.dev
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  # Reasonable lifetimes (Let’s Encrypt default is ~90d). We can rely on default duration,
+  # but specifying renewBefore adds clarity.
+  renewBefore: 720h # 30d before expiry
