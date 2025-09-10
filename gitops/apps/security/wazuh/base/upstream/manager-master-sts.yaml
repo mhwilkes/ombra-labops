@@ -21,6 +21,8 @@ spec:
         - name: config
           configMap:
             name: wazuh-conf
+        - name: config-generated
+          emptyDir: {}
         - name: filebeat-certs
           projected:
             sources:
@@ -84,9 +86,10 @@ spec:
                   name: wazuh-cluster-key
                   key: key
           volumeMounts:
+            - name: config-generated
+              mountPath: /wazuh-config-mount/etc
             - name: config
-              mountPath: /wazuh-config-mount/etc/ossec.conf
-              subPath: master.conf
+              mountPath: /config-template
               readOnly: true
             - name: filebeat-certs
               mountPath: /etc/ssl/root-ca.pem
@@ -143,3 +146,32 @@ spec:
             resources:
               requests:
                 storage: 500Mi
+      initContainers:
+        - name: generate-ossec-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              set -euo pipefail
+              TEMPLATE=/config-template/master.conf
+              DEST=/wazuh-config-mount/etc/ossec.conf
+              if [ ! -f "$TEMPLATE" ]; then echo "Template not found: $TEMPLATE" >&2; exit 1; fi
+              cp "$TEMPLATE" "$DEST"
+              if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
+                sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST"
+              fi
+              echo "Generated ossec.conf (cluster section):" >&2
+              awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST" >&2 || true
+          env:
+            - name: WAZUH_CLUSTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-cluster-key
+                  key: key
+          volumeMounts:
+            - name: config-generated
+              mountPath: /wazuh-config-mount/etc
+            - name: config
+              mountPath: /config-template
+              readOnly: true
