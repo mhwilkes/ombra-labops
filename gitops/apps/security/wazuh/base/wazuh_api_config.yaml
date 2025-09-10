@@ -11,6 +11,11 @@ data:
     host: ['0.0.0.0']
     port: 55000
     https:
-      enabled: no
+      enabled: yes
+      key: "server.key"
+      cert: "server.crt"
+      use_ca: false
+      ssl_protocol: "auto"
+      ssl_ciphers: ""
     logs:
       level: info
