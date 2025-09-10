@@ -17,10 +17,12 @@ spec:
   secretName: wazuh-root-ca
   commonName: wazuh-root-ca
   subject:
-    organizationalUnits:
-      - Wazuh
+    organizations: ["Company"]
+    organizationalUnits: ["Wazuh"]
+    countries: ["US"]
+    localities: ["California"]
   duration: 87600h # 10y
-  renewBefore: 720h # 30d
+  renewBefore: 8760h # 1y (renew the CA yearly)
   privateKey:
     algorithm: RSA
     size: 4096
@@ -46,19 +48,29 @@ metadata:
   namespace: wazuh
 spec:
   secretName: wazuh-node-tls
-  commonName: wazuh-indexer
+  commonName: indexer
+  subject:
+    organizations: ["Company"]
+    countries: ["US"]
+    localities: ["California"]
   dnsNames:
     - wazuh-indexer
     - wazuh-indexer.wazuh
-    - '*.wazuh-indexer.wazuh.svc'
+    - wazuh-indexer.wazuh.svc
+    - "wazuh-indexer-0.wazuh-indexer.wazuh.svc"
+    - "wazuh-indexer-1.wazuh-indexer.wazuh.svc"
+    - "wazuh-indexer-2.wazuh-indexer.wazuh.svc"
   usages:
     - digital signature
     - key encipherment
     - server auth
     - client auth
+  duration: 8760h # 1y
+  renewBefore: 720h # 30d
   privateKey:
     algorithm: RSA
     size: 2048
+    rotationPolicy: Always
   issuerRef:
     name: wazuh-ca-issuer
     kind: Issuer
@@ -72,15 +84,22 @@ metadata:
 spec:
   secretName: wazuh-admin-tls
   commonName: admin
+  subject:
+    organizations: ["Company"]
+    countries: ["US"]
+    localities: ["California"]
   dnsNames:
     - admin.wazuh
   usages:
     - digital signature
     - key encipherment
     - client auth
+  duration: 8760h
+  renewBefore: 720h
   privateKey:
     algorithm: RSA
     size: 2048
+    rotationPolicy: Always
   issuerRef:
     name: wazuh-ca-issuer
     kind: Issuer
@@ -94,15 +113,22 @@ metadata:
 spec:
   secretName: wazuh-filebeat-tls
   commonName: filebeat
+  subject:
+    organizations: ["Company"]
+    countries: ["US"]
+    localities: ["California"]
   dnsNames:
     - filebeat.wazuh
   usages:
     - digital signature
     - key encipherment
     - client auth
+  duration: 8760h
+  renewBefore: 720h
   privateKey:
     algorithm: RSA
     size: 2048
+    rotationPolicy: Always
   issuerRef:
     name: wazuh-ca-issuer
     kind: Issuer
@@ -116,6 +142,10 @@ metadata:
 spec:
   secretName: wazuh-dashboard-tls
   commonName: dashboard.wazuh
+  subject:
+    organizations: ["Company"]
+    countries: ["US"]
+    localities: ["California"]
   dnsNames:
     - dashboard.wazuh
     - dashboard.wazuh.svc
@@ -123,9 +153,12 @@ spec:
     - digital signature
     - key encipherment
     - server auth
+  duration: 8760h
+  renewBefore: 720h
   privateKey:
     algorithm: RSA
     size: 2048
+    rotationPolicy: Always
   issuerRef:
     name: wazuh-ca-issuer
     kind: Issuer
