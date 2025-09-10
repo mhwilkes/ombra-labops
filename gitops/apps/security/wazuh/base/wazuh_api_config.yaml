@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-api-config
+  namespace: wazuh
+  labels:
+    app.kubernetes.io/part-of: wazuh
+    app.kubernetes.io/managed-by: argocd
+data:
+  api.yaml: |
+    host: ['0.0.0.0']
+    port: 55000
+    https:
+      enabled: no
+    logs:
+      level: info

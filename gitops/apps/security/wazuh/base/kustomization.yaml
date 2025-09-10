@@ -26,6 +26,7 @@ resources:
   - ./upstream/dashboard-deploy.yaml
   - ./upstream/manager-master-sts.yaml
   - ./upstream/manager-worker-sts.yaml
+  - ./wazuh_api_config.yaml
 
 configMapGenerator:
   - name: indexer-conf
