@@ -73,3 +73,81 @@ patches:
                 env:
                   - name: OPENSEARCH_JAVA_OPTS
                     value: "-Xms2g -Xmx2g -Dlog4j2.formatMsgNoLookups=true"
+  # Patch master statefulset to add missing API configuration mount (align with worker) and drop overriding incomplete ossec.conf if needed later
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-master
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-master
+      spec:
+        template:
+          spec:
+            containers:
+              - name: wazuh-manager
+                volumeMounts:
+                  - name: wazuh-manager-master
+                    mountPath: /var/ossec/api/configuration
+                    subPath: wazuh/var/ossec/api/configuration
+  # Replace the overly-minimal wazuh-conf ConfigMap with a fuller baseline config so daemons start
+  - target:
+      version: v1
+      kind: ConfigMap
+      name: wazuh-conf
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: wazuh-conf
+      data:
+        master.conf: |
+          <ossec_config>
+            <global>
+              <email_notification>no</email_notification>
+              <logall>no</logall>
+              <logall_json>yes</logall_json>
+            </global>
+            <remote>
+              <connection>
+                <type>secure</type>
+                <port>1515</port>
+              </connection>
+            </remote>
+            <cluster>
+              <name>wazuh</name>
+              <node_name>master</node_name>
+              <node_type>master</node_type>
+              <key>CHANGEME</key>
+              <port>1516</port>
+              <bind_addr>0.0.0.0</bind_addr>
+            </cluster>
+            <api>
+              <https>yes</https>
+              <max_request_size>1048576</max_request_size>
+            </api>
+          </ossec_config>
+        worker.conf: |
+          <ossec_config>
+            <global>
+              <email_notification>no</email_notification>
+              <logall>no</logall>
+              <logall_json>yes</logall_json>
+            </global>
+            <remote>
+              <connection>
+                <type>secure</type>
+                <port>1515</port>
+              </connection>
+            </remote>
+            <cluster>
+              <name>wazuh</name>
+              <node_name>worker</node_name>
+              <node_type>worker</node_type>
+              <key>CHANGEME</key>
+              <port>1516</port>
+            </cluster>
+          </ossec_config>
