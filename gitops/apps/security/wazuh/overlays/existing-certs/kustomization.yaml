@@ -109,6 +109,7 @@ patches:
               <email_notification>no</email_notification>
               <logall>no</logall>
               <logall_json>yes</logall_json>
+              <jsonout_output>yes</jsonout_output>
             </global>
             <!-- Remote (manager <-> agents). Wazuh 4.12 expects direct elements, not nested <connection><type>. -->
             <remote>
@@ -139,9 +140,6 @@ patches:
               <log_format>json</log_format>
               <location>/var/ossec/logs/alerts/alerts.json</location>
             </localfile>
-            <alerts>
-              <jsonout_output>yes</jsonout_output>
-            </alerts>
           </ossec_config>
         worker.conf: |
           <ossec_config>
@@ -149,6 +147,7 @@ patches:
               <email_notification>no</email_notification>
               <logall>no</logall>
               <logall_json>yes</logall_json>
+              <jsonout_output>yes</jsonout_output>
             </global>
             <remote>
               <connection>secure</connection>
@@ -179,7 +178,4 @@ patches:
               <log_format>json</log_format>
               <location>/var/ossec/logs/alerts/alerts.json</location>
             </localfile>
-            <alerts>
-              <jsonout_output>yes</jsonout_output>
-            </alerts>
           </ossec_config>
