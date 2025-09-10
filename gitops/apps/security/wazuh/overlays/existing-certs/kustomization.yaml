@@ -111,11 +111,11 @@ patches:
               <logall>no</logall>
               <logall_json>yes</logall_json>
             </global>
+            <!-- Remote (manager <-> agents). Wazuh 4.12 expects direct elements, not nested <connection><type>. -->
             <remote>
-              <connection>
-                <type>secure</type>
-                <port>1515</port>
-              </connection>
+              <connection>secure</connection>
+              <port>1515</port>
+              <protocol>tcp</protocol>
             </remote>
             <cluster>
               <name>wazuh</name>
@@ -134,10 +134,9 @@ patches:
               <logall_json>yes</logall_json>
             </global>
             <remote>
-              <connection>
-                <type>secure</type>
-                <port>1515</port>
-              </connection>
+              <connection>secure</connection>
+              <port>1515</port>
+              <protocol>tcp</protocol>
             </remote>
             <cluster>
               <name>wazuh</name>

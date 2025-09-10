@@ -144,20 +144,23 @@ spec:
                 storage: 500Mi
       initContainers:
         - name: generate-ossec-config
-          image: busybox:1.36
+          image: wazuh/wazuh-manager:4.12.0
           command:
             - sh
             - -c
             - |
               set -euo pipefail
               TEMPLATE=/config-template/worker.conf
-              DEST=/wazuh-config-mount/etc/ossec.conf
+              DEST_TMP=/wazuh-config-mount/etc/ossec.conf
+              TARGET=/var/ossec/etc
               if [ ! -f "$TEMPLATE" ]; then echo "Template not found: $TEMPLATE" >&2; exit 1; fi
-              cp "$TEMPLATE" "$DEST"
-              # Seed persistent etc directory with image defaults if empty
+              cp "$TEMPLATE" "$DEST_TMP"
+              if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
+                sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST_TMP"
+              fi
               if [ -d "$TARGET" ]; then
                 if [ -z "$(ls -A "$TARGET" 2>/dev/null)" ] || [ ! -f "$TARGET/.seeded" ]; then
-                  echo "Seeding persistent etc directory with default contents" >&2
+                  echo "Seeding $TARGET with default manager etc contents" >&2
                   for item in /var/ossec/etc/*; do
                     base="$(basename "$item")"
                     [ "$base" = "ossec.conf" ] && continue
@@ -165,12 +168,14 @@ spec:
                   done
                   touch "$TARGET/.seeded"
                 fi
-              fi
-              if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
-                sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST"
+                cp "$DEST_TMP" "$TARGET/ossec.conf"
+                chmod 0640 "$TARGET/ossec.conf" || true
+                chown 101:101 "$TARGET/ossec.conf" || true
+              else
+                echo "WARNING: Target dir $TARGET missing" >&2
               fi
               echo "Generated ossec.conf (cluster section):" >&2
-              awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST" >&2 || true
+              awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST_TMP" >&2 || true
           env:
             - name: WAZUH_CLUSTER_KEY
               valueFrom:
