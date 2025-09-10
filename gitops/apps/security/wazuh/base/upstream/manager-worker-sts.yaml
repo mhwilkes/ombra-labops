@@ -158,6 +158,17 @@ spec:
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST_TMP"
               fi
+              HOSTNAME="$(hostname)"
+              sed -i "s|__NODE_NAME__|${HOSTNAME}|" "$DEST_TMP"
+              if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
+                if ! printf '%s' "$WAZUH_CLUSTER_KEY" | grep -Eq '^[A-Za-z0-9]{32}$'; then
+                  echo "FATAL: WAZUH_CLUSTER_KEY must be exactly 32 alphanumeric characters (current length ${#WAZUH_CLUSTER_KEY})." >&2
+                  exit 2
+                fi
+              else
+                echo "FATAL: WAZUH_CLUSTER_KEY env var empty" >&2
+                exit 2
+              fi
               if [ -d "$TARGET" ]; then
                 if [ -z "$(ls -A "$TARGET" 2>/dev/null)" ] || [ ! -f "$TARGET/.seeded" ]; then
                   echo "Seeding $TARGET with default manager etc contents" >&2

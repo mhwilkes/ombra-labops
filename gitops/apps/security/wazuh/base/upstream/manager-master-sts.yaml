@@ -163,6 +163,20 @@ spec:
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST_TMP"
               fi
+              # Substitute node name placeholder with actual pod hostname
+              HOSTNAME="$(hostname)"
+              sed -i "s|__NODE_NAME__|${HOSTNAME}|" "$DEST_TMP"
+              # Validate cluster key: must be exactly 32 alphanumeric characters
+              if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
+                if ! printf '%s' "$WAZUH_CLUSTER_KEY" | grep -Eq '^[A-Za-z0-9]{32}$'; then
+                  echo "FATAL: WAZUH_CLUSTER_KEY must be exactly 32 alphanumeric characters (current length ${#WAZUH_CLUSTER_KEY})." >&2
+                  echo "Provided key (masked length only): $(printf '%*s' ${#WAZUH_CLUSTER_KEY} '' | tr ' ' '*')" >&2
+                  exit 2
+                fi
+              else
+                echo "FATAL: WAZUH_CLUSTER_KEY env var empty" >&2
+                exit 2
+              fi
               # Populate TARGET with defaults if first run
               if [ -d "$TARGET" ]; then
                 if [ -z "$(ls -A "$TARGET" 2>/dev/null)" ] || [ ! -f "$TARGET/.seeded" ]; then
