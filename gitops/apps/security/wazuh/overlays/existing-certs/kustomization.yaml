@@ -15,7 +15,7 @@ resources:
   - ./ingress-dashboard.yaml
   - ./ingress-api.yaml
 
-patches:
+              <node_name>master</node_name>
   # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec) and tune resources
   - target:
       group: apps
@@ -36,7 +36,7 @@ patches:
                   - name: WAZUH_API_URL
                     value: https://wazuh:55000
                   - name: WAZUH_API_USER
-                    valueFrom:
+              <node_name>worker</node_name>
                       secretKeyRef:
                         name: wazuh-api-cred
                         key: username
