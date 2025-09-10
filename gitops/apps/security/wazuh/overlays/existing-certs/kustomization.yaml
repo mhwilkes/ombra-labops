@@ -123,10 +123,28 @@ patches:
               <key>CHANGEME</key>
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
-              <nodes>
-                <node>worker</node>
-              </nodes>
+              <disabled>no</disabled>
+              <address>__POD_IP__</address>
             </cluster>
+            <ruleset>
+              <decoder_dir>ruleset/decoders</decoder_dir>
+              <rule_dir>ruleset/rules</rule_dir>
+              <rule_exclude>0215-policy_monitoring_rules.xml</rule_exclude>
+              <localfile_dir>ruleset/local</localfile_dir>
+            </ruleset>
+            <syscheck>
+              <disabled>no</disabled>
+              <frequency>43200</frequency>
+              <scan_on_start>yes</scan_on_start>
+            </syscheck>
+            <localfile>
+              <log_format>json</log_format>
+              <location>/var/ossec/logs/alerts/alerts.log</location>
+            </localfile>
+            <alerts>
+              <jsonout_output>yes</jsonout_output>
+              <log_format>json</log_format>
+            </alerts>
           </ossec_config>
         worker.conf: |
           <ossec_config>
@@ -147,6 +165,27 @@ patches:
               <key>CHANGEME</key>
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
-              <manager>master</manager>
+              <manager>wazuh-cluster</manager>
+              <disabled>no</disabled>
+              <address>__POD_IP__</address>
             </cluster>
+            <ruleset>
+              <decoder_dir>ruleset/decoders</decoder_dir>
+              <rule_dir>ruleset/rules</rule_dir>
+              <rule_exclude>0215-policy_monitoring_rules.xml</rule_exclude>
+              <localfile_dir>ruleset/local</localfile_dir>
+            </ruleset>
+            <syscheck>
+              <disabled>no</disabled>
+              <frequency>43200</frequency>
+              <scan_on_start>yes</scan_on_start>
+            </syscheck>
+            <localfile>
+              <log_format>json</log_format>
+              <location>/var/ossec/logs/alerts/alerts.log</location>
+            </localfile>
+            <alerts>
+              <jsonout_output>yes</jsonout_output>
+              <log_format>json</log_format>
+            </alerts>
           </ossec_config>
