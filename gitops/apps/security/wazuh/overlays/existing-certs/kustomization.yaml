@@ -125,10 +125,6 @@ patches:
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
             </cluster>
-            <api>
-              <https>yes</https>
-              <max_request_size>1048576</max_request_size>
-            </api>
           </ossec_config>
         worker.conf: |
           <ossec_config>
