@@ -139,11 +139,10 @@ patches:
             </syscheck>
             <localfile>
               <log_format>json</log_format>
-              <location>/var/ossec/logs/alerts/alerts.log</location>
+              <location>/var/ossec/logs/alerts/alerts.json</location>
             </localfile>
             <alerts>
               <jsonout_output>yes</jsonout_output>
-              <log_format>json</log_format>
             </alerts>
           </ossec_config>
         worker.conf: |
@@ -182,10 +181,9 @@ patches:
             </syscheck>
             <localfile>
               <log_format>json</log_format>
-              <location>/var/ossec/logs/alerts/alerts.log</location>
+              <location>/var/ossec/logs/alerts/alerts.json</location>
             </localfile>
             <alerts>
               <jsonout_output>yes</jsonout_output>
-              <log_format>json</log_format>
             </alerts>
           </ossec_config>

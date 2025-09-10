@@ -182,6 +182,17 @@ spec:
                   done
                   touch "$TARGET/.seeded"
                 fi
+                if [ ! -d "$TARGET/lists" ] || [ -z "$(ls -A "$TARGET/lists" 2>/dev/null)" ]; then
+                  echo "Restoring lists directory contents" >&2
+                  mkdir -p "$TARGET/lists"
+                  cp -r /var/ossec/etc/lists/* "$TARGET/lists/" 2>/dev/null || true
+                else
+                  for f in audit-keys amazon/aws-eventnames; do
+                    if [ ! -f "$TARGET/lists/$f" ] && [ -f "/var/ossec/etc/lists/$f" ]; then
+                      cp "/var/ossec/etc/lists/$f" "$TARGET/lists/" 2>/dev/null || true
+                    fi
+                  done
+                fi
                 cp "$DEST_TMP" "$TARGET/ossec.conf"
                 chmod 0640 "$TARGET/ossec.conf" || true
                 chown 101:101 "$TARGET/ossec.conf" || true
@@ -196,6 +207,10 @@ spec:
                 secretKeyRef:
                   name: wazuh-cluster-key
                   key: key
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           volumeMounts:
             - name: config-generated
               mountPath: /wazuh-config-mount/etc
