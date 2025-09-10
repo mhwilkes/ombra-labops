@@ -40,8 +40,12 @@ patches:
                   - sh
                   - -c
                   - |
-                    set -eu
-                    cat > /wazuh-api-config/wazuh.yml <<'EOF'
+                    set -euo pipefail
+                    if [ -z "${API_USERNAME:-}" ] || [ -z "${API_PASSWORD:-}" ]; then
+                      echo "ERROR: API_USERNAME or API_PASSWORD is empty" >&2
+                      exit 1
+                    fi
+                    cat > /wazuh-api-config/wazuh.yml <<EOF
                     hosts:
                       - name: primary
                         url: https://wazuh:55000
@@ -57,6 +61,7 @@ patches:
                             - /usr/share/wazuh-dashboard/certs/root-ca.pem
                     EOF
                     echo "Generated wazuh.yml:" >&2
+                    sed 's/API_PASSWORD=.*/API_PASSWORD=********/' <(echo API_USERNAME=$API_USERNAME; echo API_PASSWORD=$API_PASSWORD) >&2
                     cat /wazuh-api-config/wazuh.yml >&2
                 env:
                   - name: API_USERNAME
