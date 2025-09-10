@@ -167,8 +167,6 @@ spec:
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST_TMP"
               fi
-              # Insert pod IP into cluster address field
-              sed -i "s|__POD_IP__|${POD_IP:-127.0.0.1}|" "$DEST_TMP"
               # Validate cluster key: must be exactly 32 alphanumeric characters
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 if ! printf '%s' "$WAZUH_CLUSTER_KEY" | grep -Eq '^[A-Za-z0-9]{32}$'; then

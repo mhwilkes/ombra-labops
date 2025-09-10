@@ -124,13 +124,11 @@ patches:
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
               <disabled>no</disabled>
-              <address>__POD_IP__</address>
             </cluster>
             <ruleset>
               <decoder_dir>ruleset/decoders</decoder_dir>
               <rule_dir>ruleset/rules</rule_dir>
-              <rule_exclude>0215-policy_monitoring_rules.xml</rule_exclude>
-              <localfile_dir>ruleset/local</localfile_dir>
+              <rule_dir>ruleset/local</rule_dir>
             </ruleset>
             <syscheck>
               <disabled>no</disabled>
@@ -166,13 +164,11 @@ patches:
               <bind_addr>0.0.0.0</bind_addr>
               <manager>wazuh-cluster</manager>
               <disabled>no</disabled>
-              <address>__POD_IP__</address>
             </cluster>
             <ruleset>
               <decoder_dir>ruleset/decoders</decoder_dir>
               <rule_dir>ruleset/rules</rule_dir>
-              <rule_exclude>0215-policy_monitoring_rules.xml</rule_exclude>
-              <localfile_dir>ruleset/local</localfile_dir>
+              <rule_dir>ruleset/local</rule_dir>
             </ruleset>
             <syscheck>
               <disabled>no</disabled>
