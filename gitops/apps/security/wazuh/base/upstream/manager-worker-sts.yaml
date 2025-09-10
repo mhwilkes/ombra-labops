@@ -154,6 +154,18 @@ spec:
               DEST=/wazuh-config-mount/etc/ossec.conf
               if [ ! -f "$TEMPLATE" ]; then echo "Template not found: $TEMPLATE" >&2; exit 1; fi
               cp "$TEMPLATE" "$DEST"
+              # Seed persistent etc directory with image defaults if empty
+              if [ -d "$TARGET" ]; then
+                if [ -z "$(ls -A "$TARGET" 2>/dev/null)" ] || [ ! -f "$TARGET/.seeded" ]; then
+                  echo "Seeding persistent etc directory with default contents" >&2
+                  for item in /var/ossec/etc/*; do
+                    base="$(basename "$item")"
+                    [ "$base" = "ossec.conf" ] && continue
+                    cp -r "$item" "$TARGET/" 2>/dev/null || true
+                  done
+                  touch "$TARGET/.seeded"
+                fi
+              fi
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST"
               fi
