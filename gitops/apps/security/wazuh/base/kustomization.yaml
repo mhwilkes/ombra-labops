@@ -13,19 +13,19 @@ resources:
   # Storage class
   - ./storageclass-wazuh.yaml
 
-  # Services and StatefulSets/Deployments from upstream Wazuh
+  # Vendored services (still remote for services only, or we can vendor later if needed)
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-cluster-svc.yaml
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-master-svc.yaml
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-workers-svc.yaml
-  - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-master-sts.yaml
-  - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/wazuh_managers/wazuh-worker-sts.yaml
-
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/indexer_stack/wazuh-indexer/indexer-svc.yaml
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/indexer_stack/wazuh-indexer/cluster/indexer-api-svc.yaml
-  - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/indexer_stack/wazuh-indexer/cluster/indexer-sts.yaml
-
   - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/indexer_stack/wazuh-dashboard/dashboard-svc.yaml
-  - https://raw.githubusercontent.com/wazuh/wazuh-kubernetes/v4.12.0/wazuh/indexer_stack/wazuh-dashboard/dashboard-deploy.yaml
+
+  # Local modified workloads with projected cert volumes
+  - ./upstream/indexer-sts.yaml
+  - ./upstream/dashboard-deploy.yaml
+  - ./upstream/manager-master-sts.yaml
+  - ./upstream/manager-worker-sts.yaml
 
 configMapGenerator:
   - name: indexer-conf

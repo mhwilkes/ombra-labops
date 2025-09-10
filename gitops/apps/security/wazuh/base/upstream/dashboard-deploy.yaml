@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wazuh-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-dashboard
+  template:
+    metadata:
+      labels:
+        app: wazuh-dashboard
+      name: wazuh-dashboard
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: dashboard-conf
+        - name: dashboard-certs
+          projected:
+            sources:
+              - secret:
+                  name: wazuh-dashboard-tls
+                  items:
+                    - key: tls.crt
+                      path: cert.pem
+                    - key: tls.key
+                      path: key.pem
+              - secret:
+                  name: wazuh-root-ca
+                  items:
+                    - key: tls.crt
+                      path: root-ca.pem
+      containers:
+        - name: wazuh-dashboard
+          image: wazuh/wazuh-dashboard:4.12.0
+          env:
+            - name: INDEXER_URL
+              value: https://indexer:9200
+            - name: INDEXER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred
+                  key: username
+            - name: INDEXER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: indexer-cred
+                  key: password
+            - name: DASHBOARD_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: dashboard-cred
+                  key: username
+            - name: DASHBOARD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dashboard-cred
+                  key: password
+            - name: SERVER_SSL_ENABLED
+              value: "true"
+            - name: SERVER_SSL_CERTIFICATE
+              value: /usr/share/wazuh-dashboard/certs/cert.pem
+            - name: SERVER_SSL_KEY
+              value: /usr/share/wazuh-dashboard/certs/key.pem
+            - name: WAZUH_API_URL
+              value: https://wazuh-manager-master-0.wazuh-cluster
+            - name: API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-api-cred
+                  key: username
+            - name: API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-api-cred
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+              readOnly: false
+            - name: dashboard-certs
+              mountPath: /usr/share/wazuh-dashboard/certs/cert.pem
+              subPath: cert.pem
+              readOnly: true
+            - name: dashboard-certs
+              mountPath: /usr/share/wazuh-dashboard/certs/key.pem
+              subPath: key.pem
+              readOnly: true
+            - name: dashboard-certs
+              mountPath: /usr/share/wazuh-dashboard/certs/root-ca.pem
+              subPath: root-ca.pem
+              readOnly: true
+          ports:
+            - containerPort: 5601
+              name: dashboard
