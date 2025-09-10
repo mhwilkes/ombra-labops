@@ -21,9 +21,6 @@ spec:
         - name: config
           configMap:
             name: wazuh-conf
-        - name: wazuh-api-config
-          configMap:
-            name: wazuh-api-config
         - name: filebeat-certs
           projected:
             sources:
@@ -90,10 +87,6 @@ spec:
             - name: config
               mountPath: /wazuh-config-mount/etc/ossec.conf
               subPath: master.conf
-              readOnly: true
-            - name: wazuh-api-config
-              mountPath: /var/ossec/api/configuration/api.yaml
-              subPath: api.yaml
               readOnly: true
             - name: filebeat-certs
               mountPath: /etc/ssl/root-ca.pem
