@@ -54,9 +54,15 @@ spec:
     countries: ["US"]
     localities: ["California"]
   dnsNames:
+    # Headless/stateful service names
     - wazuh-indexer
     - wazuh-indexer.wazuh
     - wazuh-indexer.wazuh.svc
+    # LoadBalancer / client-facing service name used by dashboard
+    - indexer
+    - indexer.wazuh
+    - indexer.wazuh.svc
+    # Individual pod DNS entries
     - "wazuh-indexer-0.wazuh-indexer.wazuh.svc"
     - "wazuh-indexer-1.wazuh-indexer.wazuh.svc"
     - "wazuh-indexer-2.wazuh-indexer.wazuh.svc"
