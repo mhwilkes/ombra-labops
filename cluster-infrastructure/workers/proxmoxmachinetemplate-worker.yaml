@@ -18,6 +18,7 @@ spec:
         default:
           bridge: vmbr1
           model: virtio
+          mtu: 9000
           vlan: 55
       numCores: 4
       numSockets: 1
