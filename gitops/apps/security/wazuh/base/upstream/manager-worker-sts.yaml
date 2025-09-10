@@ -193,6 +193,7 @@ spec:
                     fi
                   done
                 fi
+                rm -f "$TARGET/ossec.conf"
                 cp "$DEST_TMP" "$TARGET/ossec.conf"
                 chmod 0640 "$TARGET/ossec.conf" || true
                 chown 101:101 "$TARGET/ossec.conf" || true
@@ -217,3 +218,6 @@ spec:
             - name: config
               mountPath: /config-template
               readOnly: true
+            - name: wazuh-manager-worker
+              mountPath: /var/ossec/etc
+              subPath: wazuh/var/ossec/etc
