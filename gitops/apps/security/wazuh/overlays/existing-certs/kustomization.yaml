@@ -28,8 +28,6 @@ patches:
       kind: Deployment
       metadata:
         name: wazuh-dashboard
-        annotations:
-          argocd.argoproj.io/sync-options: Replace=true
   - target:
       group: apps
       version: v1
@@ -40,8 +38,6 @@ patches:
       kind: StatefulSet
       metadata:
         name: wazuh-indexer
-        annotations:
-          argocd.argoproj.io/sync-options: Replace=true
       spec:
         template:
           spec:
@@ -57,27 +53,3 @@ patches:
                 env:
                   - name: OPENSEARCH_JAVA_OPTS
                     value: "-Xms2g -Xmx2g -Dlog4j2.formatMsgNoLookups=true"
-  - target:
-      group: apps
-      version: v1
-      kind: StatefulSet
-      name: wazuh-manager-master
-    patch: |
-      apiVersion: apps/v1
-      kind: StatefulSet
-      metadata:
-        name: wazuh-manager-master
-        annotations:
-          argocd.argoproj.io/sync-options: Replace=true
-  - target:
-      group: apps
-      version: v1
-      kind: StatefulSet
-      name: wazuh-manager-worker
-    patch: |
-      apiVersion: apps/v1
-      kind: StatefulSet
-      metadata:
-        name: wazuh-manager-worker
-        annotations:
-          argocd.argoproj.io/sync-options: Replace=true
