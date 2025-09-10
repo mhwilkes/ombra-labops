@@ -123,6 +123,9 @@ patches:
               <key>CHANGEME</key>
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
+              <nodes>
+                <node>worker</node>
+              </nodes>
             </cluster>
           </ossec_config>
         worker.conf: |
@@ -143,5 +146,7 @@ patches:
               <node_type>worker</node_type>
               <key>CHANGEME</key>
               <port>1516</port>
+              <bind_addr>0.0.0.0</bind_addr>
+              <manager>master</manager>
             </cluster>
           </ossec_config>
