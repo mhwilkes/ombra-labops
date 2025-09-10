@@ -92,6 +92,10 @@ spec:
             - name: config
               mountPath: /config-template
               readOnly: true
+            - name: config-generated
+              mountPath: /var/ossec/etc/ossec.conf
+              subPath: etc/ossec.conf
+              readOnly: true
             - name: filebeat-certs
               mountPath: /etc/ssl/root-ca.pem
               subPath: root-ca.pem
@@ -107,9 +111,7 @@ spec:
             - name: wazuh-manager-worker
               mountPath: /var/ossec/api/configuration
               subPath: wazuh/var/ossec/api/configuration
-            - name: wazuh-manager-worker
-              mountPath: /var/ossec/etc
-              subPath: wazuh/var/ossec/etc
+            # Removed /var/ossec/etc PV overlay to keep image default rules/decoders
             - name: wazuh-manager-worker
               mountPath: /var/ossec/logs
               subPath: wazuh/var/ossec/logs
@@ -156,7 +158,6 @@ spec:
               set -euo pipefail
               TEMPLATE=/config-template/worker.conf
               DEST_TMP=/wazuh-config-mount/etc/ossec.conf
-              TARGET=/var/ossec/etc
               if [ ! -f "$TEMPLATE" ]; then echo "Template not found: $TEMPLATE" >&2; exit 1; fi
               cp "$TEMPLATE" "$DEST_TMP"
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
@@ -164,40 +165,12 @@ spec:
               fi
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 if ! printf '%s' "$WAZUH_CLUSTER_KEY" | grep -Eq '^[A-Za-z0-9]{32}$'; then
-                  echo "FATAL: WAZUH_CLUSTER_KEY must be exactly 32 alphanumeric characters (current length ${#WAZUH_CLUSTER_KEY})." >&2
+                  echo "FATAL: WAZUH_CLUSTER_KEY must be 32 alphanumeric chars" >&2
                   exit 2
                 fi
               else
                 echo "FATAL: WAZUH_CLUSTER_KEY env var empty" >&2
                 exit 2
-              fi
-              if [ -d "$TARGET" ]; then
-                if [ -z "$(ls -A "$TARGET" 2>/dev/null)" ] || [ ! -f "$TARGET/.seeded" ]; then
-                  echo "Seeding $TARGET with default manager etc contents" >&2
-                  for item in /var/ossec/etc/*; do
-                    base="$(basename "$item")"
-                    [ "$base" = "ossec.conf" ] && continue
-                    cp -r "$item" "$TARGET/" 2>/dev/null || true
-                  done
-                  touch "$TARGET/.seeded"
-                fi
-                if [ ! -d "$TARGET/lists" ] || [ -z "$(ls -A "$TARGET/lists" 2>/dev/null)" ]; then
-                  echo "Restoring lists directory contents" >&2
-                  mkdir -p "$TARGET/lists"
-                  cp -r /var/ossec/etc/lists/* "$TARGET/lists/" 2>/dev/null || true
-                else
-                  for f in audit-keys amazon/aws-eventnames; do
-                    if [ ! -f "$TARGET/lists/$f" ] && [ -f "/var/ossec/etc/lists/$f" ]; then
-                      cp "/var/ossec/etc/lists/$f" "$TARGET/lists/" 2>/dev/null || true
-                    fi
-                  done
-                fi
-                rm -f "$TARGET/ossec.conf"
-                cp "$DEST_TMP" "$TARGET/ossec.conf"
-                chmod 0640 "$TARGET/ossec.conf" || true
-                chown 101:101 "$TARGET/ossec.conf" || true
-              else
-                echo "WARNING: Target dir $TARGET missing" >&2
               fi
               echo "Generated ossec.conf (cluster section):" >&2
               awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST_TMP" >&2 || true
@@ -217,6 +190,3 @@ spec:
             - name: config
               mountPath: /config-template
               readOnly: true
-            - name: wazuh-manager-worker
-              mountPath: /var/ossec/etc
-              subPath: wazuh/var/ossec/etc
