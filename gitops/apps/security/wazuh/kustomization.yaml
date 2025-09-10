@@ -46,6 +46,7 @@ patches:
           spec:
             volumes:
               - name: indexer-certs
+                $patch: replace
                 projected:
                   sources:
                     - secret:
@@ -67,7 +68,6 @@ patches:
                         items:
                           - key: tls.crt
                             path: root-ca.pem
-                secret: null
   # Patch dashboard Deployment: project dashboard tls + root CA
   - target:
       group: apps
@@ -84,6 +84,7 @@ patches:
           spec:
             volumes:
               - name: dashboard-certs
+                $patch: replace
                 projected:
                   sources:
                     - secret:
@@ -98,7 +99,6 @@ patches:
                         items:
                           - key: tls.crt
                             path: root-ca.pem
-                secret: null
   # Patch manager master: project filebeat + root CA
   - target:
       group: apps
@@ -115,6 +115,7 @@ patches:
           spec:
             volumes:
               - name: filebeat-certs
+                $patch: replace
                 projected:
                   sources:
                     - secret:
@@ -129,7 +130,6 @@ patches:
                         items:
                           - key: tls.crt
                             path: root-ca.pem
-                secret: null
   # Patch manager worker: project filebeat + root CA
   - target:
       group: apps
@@ -146,6 +146,7 @@ patches:
           spec:
             volumes:
               - name: filebeat-certs
+                $patch: replace
                 projected:
                   sources:
                     - secret:
@@ -160,4 +161,3 @@ patches:
                         items:
                           - key: tls.crt
                             path: root-ca.pem
-                secret: null
