@@ -30,63 +30,24 @@ patches:
       spec:
         template:
           spec:
-            volumes:
-              - name: wazuh-api-config
-                emptyDir: {}
-            initContainers:
-              - name: generate-wazuh-api-config
-                image: busybox:1.36
-                command:
-                  - sh
-                  - -c
-                  - |
-                    set -euo pipefail
-                    if [ -z "${API_USERNAME:-}" ] || [ -z "${API_PASSWORD:-}" ]; then
-                      echo "ERROR: API_USERNAME or API_PASSWORD is empty" >&2
-                      exit 1
-                    fi
-                    cat > /wazuh-api-config/wazuh.yml <<EOF
-                    hosts:
-                      - name: primary
-                        url: https://wazuh:55000
-                        port: 55000
-                        username: "${API_USERNAME}"
-                        password: "${API_PASSWORD}"
-                        run_as: false
-                        max_retries: 3
-                        timeout: 20000
-                        ssl:
-                          verification: full
-                          certificate_authorities:
-                            - /usr/share/wazuh-dashboard/certs/root-ca.pem
-                    EOF
-                    echo "Generated wazuh.yml:" >&2
-                    sed 's/API_PASSWORD=.*/API_PASSWORD=********/' <(echo API_USERNAME=$API_USERNAME; echo API_PASSWORD=$API_PASSWORD) >&2
-                    cat /wazuh-api-config/wazuh.yml >&2
+            containers:
+              - name: wazuh-dashboard
                 env:
-                  - name: API_USERNAME
+                  - name: WAZUH_API_URL
+                    value: https://wazuh:55000
+                  - name: WAZUH_API_USER
                     valueFrom:
                       secretKeyRef:
                         name: wazuh-api-cred
                         key: username
-                  - name: API_PASSWORD
+                  - name: WAZUH_API_PASSWORD
                     valueFrom:
                       secretKeyRef:
                         name: wazuh-api-cred
                         key: password
-                volumeMounts:
-                  - name: wazuh-api-config
-                    mountPath: /wazuh-api-config
-            containers:
-              - name: wazuh-dashboard
-                env:
                   - name: NODE_EXTRA_CA_CERTS
                     value: /usr/share/wazuh-dashboard/certs/root-ca.pem
-                volumeMounts:
-                  - name: wazuh-api-config
-                    mountPath: /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
-                    subPath: wazuh.yml
-                    readOnly: true
+            volumes: []
   - target:
       group: apps
       version: v1
