@@ -1,0 +1,131 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: wazuh-selfsigned
+  namespace: wazuh
+spec:
+  selfSigned: {}
+---
+# Root CA (self-signed)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-root-ca
+  namespace: wazuh
+spec:
+  isCA: true
+  secretName: wazuh-root-ca
+  commonName: wazuh-root-ca
+  subject:
+    organizationalUnits:
+      - Wazuh
+  duration: 87600h # 10y
+  renewBefore: 720h # 30d
+  privateKey:
+    algorithm: RSA
+    size: 4096
+  issuerRef:
+    name: wazuh-selfsigned
+    kind: Issuer
+---
+# Issuer backed by root CA
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: wazuh-ca-issuer
+  namespace: wazuh
+spec:
+  ca:
+    secretName: wazuh-root-ca
+---
+# Node certificate (used by indexer nodes)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-node
+  namespace: wazuh
+spec:
+  secretName: wazuh-node-tls
+  commonName: wazuh-indexer
+  dnsNames:
+    - wazuh-indexer
+    - wazuh-indexer.wazuh
+    - '*.wazuh-indexer.wazuh.svc'
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    - client auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: wazuh-ca-issuer
+    kind: Issuer
+---
+# Admin certificate (used for admin client operations)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-admin
+  namespace: wazuh
+spec:
+  secretName: wazuh-admin-tls
+  commonName: admin
+  dnsNames:
+    - admin.wazuh
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: wazuh-ca-issuer
+    kind: Issuer
+---
+# Filebeat certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-filebeat
+  namespace: wazuh
+spec:
+  secretName: wazuh-filebeat-tls
+  commonName: filebeat
+  dnsNames:
+    - filebeat.wazuh
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: wazuh-ca-issuer
+    kind: Issuer
+---
+# Dashboard HTTPS certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-dashboard
+  namespace: wazuh
+spec:
+  secretName: wazuh-dashboard-tls
+  commonName: dashboard.wazuh
+  dnsNames:
+    - dashboard.wazuh
+    - dashboard.wazuh.svc
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: wazuh-ca-issuer
+    kind: Issuer
