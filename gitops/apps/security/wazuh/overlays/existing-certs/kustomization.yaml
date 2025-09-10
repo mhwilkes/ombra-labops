@@ -41,7 +41,7 @@ patches:
         name: dashboard-certs
       $patch: delete
 
-  # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec)
+  # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec) and tune resources
   - target:
       group: apps
       version: v1
@@ -66,6 +66,21 @@ patches:
         name: wazuh-indexer
         annotations:
           argocd.argoproj.io/sync-options: Replace=true
+      spec:
+        template:
+          spec:
+            containers:
+              - name: wazuh-indexer
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 2Gi
+                  limits:
+                    cpu: "2"
+                    memory: 4Gi
+                env:
+                  - name: OPENSEARCH_JAVA_OPTS
+                    value: "-Xms2g -Xmx2g -Dlog4j2.formatMsgNoLookups=true"
   - target:
       group: apps
       version: v1
