@@ -92,6 +92,52 @@ patches:
                   - name: wazuh-manager-master
                     mountPath: /var/ossec/api/configuration
                     subPath: wazuh/var/ossec/api/configuration
+  # Increase resources for master
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-master
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-master
+      spec:
+        template:
+          spec:
+            containers:
+              - name: wazuh-manager
+                resources:
+                  requests:
+                    cpu: 500m
+                    memory: 2Gi
+                  limits:
+                    cpu: "2"
+                    memory: 4Gi
+  # Increase resources for worker
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-worker
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-worker
+      spec:
+        template:
+          spec:
+            containers:
+              - name: wazuh-manager
+                resources:
+                  requests:
+                    cpu: 400m
+                    memory: 1536Mi
+                  limits:
+                    cpu: "2"
+                    memory: 3Gi
   # Replace the overly-minimal wazuh-conf ConfigMap with a fuller baseline config so daemons start
   - target:
       version: v1
