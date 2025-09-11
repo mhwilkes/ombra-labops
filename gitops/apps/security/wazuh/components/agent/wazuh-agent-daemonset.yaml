@@ -46,19 +46,21 @@ spec:
             - -c
             - |
               set -euo pipefail
-              echo "[init] Staging writable ossec.conf";
-              cp -a /var/ossec/etc/* /ossec-etc/ 2>/dev/null || true
+              echo "[init] Writing ossec.conf directly to /var/ossec/etc";
+              mkdir -p /var/ossec/etc
               if [ -f /config/ossec.conf ]; then
-                cp /config/ossec.conf /ossec-etc/ossec.conf
+                cp /config/ossec.conf /var/ossec/etc/ossec.conf
+              else
+                echo "[init] ERROR: /config/ossec.conf not found" >&2; exit 1;
               fi
-              sed -i "s|%NODE_NAME%|${NODE_NAME}|g" /ossec-etc/ossec.conf || true
-              echo "[init] Completed config staging";
+              sed -i "s|%NODE_NAME%|${NODE_NAME}|g" /var/ossec/etc/ossec.conf || true
+              echo "[init] Completed config write";
           volumeMounts:
             - name: config
               mountPath: /config
               readOnly: true
             - name: ossec-etc
-              mountPath: /ossec-etc
+              mountPath: /var/ossec/etc
       containers:
         - name: agent
           image: wazuh/wazuh-agent:4.13.0-rc4
