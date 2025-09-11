@@ -8,20 +8,24 @@ metadata:
     app.kubernetes.io/part-of: wazuh
 data:
   ossec.conf: |
+    <!-- Unified Wazuh agent configuration shared by overlays -->
     <ossec_config>
       <client>
-        <!-- Primary: unified wazuh Service (now exposes 1514/1515/55000) -->
+        <!-- Primary manager service -->
         <server>
           <address>wazuh</address>
           <protocol>tcp</protocol>
+          <port>1514</port>
         </server>
-        <!-- Failover: direct to workers Service if master endpoint unreachable -->
+        <!-- Failover manager service (workers headless / LB) -->
         <server>
           <address>wazuh-workers</address>
           <protocol>tcp</protocol>
+          <port>1514</port>
         </server>
         <config-profile>k8s-talos-node</config-profile>
       </client>
+
       <auth>
         <disabled>no</disabled>
         <use_password>yes</use_password>
@@ -30,20 +34,32 @@ data:
           <port>1515</port>
         </server>
       </auth>
+
       <global>
         <log_format>json</log_format>
       </global>
+
+      <!-- Container stdout/stderr (CRI) logs -->
       <localfile>
         <location>/var/log/containers/*.log</location>
-        <log_format>json</log_format>
+        <log_format>syslog</log_format>
+        <!-- Common noisy infra exclusions -->
         <exclude>/var/log/containers/*coredns*</exclude>
         <exclude>/var/log/containers/*metrics-server*</exclude>
         <exclude>/var/log/containers/*kube-proxy*</exclude>
+        <!-- Exclude self logs -->
+        <exclude>/var/log/containers/wazuh-agent-*_*_wazuh-agent-*.log</exclude>
+        <exclude>/var/log/containers/wazuh-agent-*_*_prepare-config-*.log</exclude>
       </localfile>
+
+      <!-- Optional alternative (disabled) direct pod logs (enable instead of containers stanza if desired) -->
+      <!--
       <localfile>
-        <location>/var/log/pods/*/*.log</location>
-        <log_format>json</log_format>
+        <location>/var/log/pods/*/*/*.log</location>
+        <log_format>syslog</log_format>
       </localfile>
+      -->
+
       <syscheck>
         <disabled>no</disabled>
         <frequency>7200</frequency>
@@ -52,16 +68,19 @@ data:
         <ignore>/var/lib/kubelet/plugins</ignore>
         <ignore>/var/lib/kubelet/device-plugins</ignore>
       </syscheck>
+
       <sca>
         <enabled>yes</enabled>
         <scan_on_start>yes</scan_on_start>
         <interval>12h</interval>
       </sca>
+
       <wodle name="syscollector">
         <disabled>no</disabled>
         <scan_on_start>yes</scan_on_start>
         <interval>12h</interval>
       </wodle>
+
       <labels>
         <label key="k8s.cluster">ombra</label>
         <label key="k8s.node">%NODE_NAME%</label>
