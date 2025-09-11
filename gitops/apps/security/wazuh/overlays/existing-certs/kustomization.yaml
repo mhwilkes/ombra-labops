@@ -131,6 +131,12 @@ patches:
               <hidden>no</hidden>
               <disabled>no</disabled>
             </cluster>
+            <auth>
+              <disabled>no</disabled>
+              <port>1515</port>
+              <use_password>yes</use_password>
+              <purge>no</purge>
+            </auth>
             <ruleset>
               <decoder_dir>ruleset/decoders</decoder_dir>
               <rule_dir>ruleset/rules</rule_dir>
@@ -169,6 +175,12 @@ patches:
               <hidden>no</hidden>
               <disabled>no</disabled>
             </cluster>
+            <auth>
+              <disabled>no</disabled>
+              <port>1515</port>
+              <use_password>yes</use_password>
+              <purge>no</purge>
+            </auth>
             <ruleset>
               <decoder_dir>ruleset/decoders</decoder_dir>
               <rule_dir>ruleset/rules</rule_dir>
