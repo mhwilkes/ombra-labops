@@ -14,6 +14,12 @@ resources:
   - ./namespace.yaml
   - ./ingress-dashboard.yaml
   - ./ingress-api.yaml
+  # Wazuh agent (DaemonSet) components pulled in so Argo manages them too
+  - ../daemonset-agent/wazuh-agent-serviceaccount.yaml
+  - ../daemonset-agent/wazuh-agent-clusterrole.yaml
+  - ../daemonset-agent/wazuh-agent-clusterrolebinding.yaml
+  - ../daemonset-agent/wazuh-agent-configmap.yaml
+  - ../daemonset-agent/wazuh-agent-daemonset.yaml
 patches:
   # Instruct Argo CD to replace resources that otherwise violate immutability (selectors/spec) and tune resources
   - target:

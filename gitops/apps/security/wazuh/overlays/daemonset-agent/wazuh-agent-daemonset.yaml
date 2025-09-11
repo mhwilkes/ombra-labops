@@ -32,6 +32,33 @@ spec:
         runAsUser: 0
         runAsGroup: 0
         fsGroup: 0
+      initContainers:
+        - name: prepare-config
+          image: wazuh/wazuh-agent:4.13.0-rc4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command:
+            - sh
+            - -c
+            - |
+              set -euo pipefail
+              echo "[init] Staging writable ossec.conf";
+              cp -a /var/ossec/etc/* /ossec-etc/ 2>/dev/null || true
+              if [ -f /config/ossec.conf ]; then
+                cp /config/ossec.conf /ossec-etc/ossec.conf
+              fi
+              sed -i "s|%NODE_NAME%|${NODE_NAME}|g" /ossec-etc/ossec.conf || true
+              echo "[init] Completed config staging";
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: ossec-etc
+              mountPath: /ossec-etc
       containers:
         - name: agent
           image: wazuh/wazuh-agent:4.13.0-rc4
@@ -77,11 +104,8 @@ spec:
             - name: kubelet
               mountPath: /var/lib/kubelet
               readOnly: true
-            - name: config
-              # Override default agent configuration
-              mountPath: /var/ossec/etc/ossec.conf
-              subPath: ossec.conf
-              readOnly: true
+            - name: ossec-etc
+              mountPath: /var/ossec/etc
           securityContext:
             privileged: true
             allowPrivilegeEscalation: true
@@ -104,3 +128,5 @@ spec:
         - name: config
           configMap:
             name: wazuh-agent-config
+        - name: ossec-etc
+          emptyDir: {}
