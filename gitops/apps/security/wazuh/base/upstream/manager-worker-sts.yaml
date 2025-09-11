@@ -56,26 +56,6 @@ spec:
           securityContext:
             capabilities:
               add: ["SYS_CHROOT"]
-          readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - "/var/ossec/bin/wazuh-control status 2>/dev/null | grep 'wazuh-clusterd is running' >/dev/null && grep -q 'wazuh-remoted is running' <( /var/ossec/bin/wazuh-control status )"
-            initialDelaySeconds: 25
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 5
-          livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - "/var/ossec/bin/wazuh-control status 2>/dev/null | grep -q 'wazuh-analysisd is running'"
-            initialDelaySeconds: 70
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 5
           env:
             - name: INDEXER_URL
               value: https://indexer:9200
