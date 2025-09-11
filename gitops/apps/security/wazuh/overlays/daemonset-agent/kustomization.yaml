@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: wazuh
+
+resources:
+  - ../../base
+  - ./wazuh-agent-daemonset.yaml
+  - ./wazuh-agent-clusterrole.yaml
+  - ./wazuh-agent-clusterrolebinding.yaml
+  - ./wazuh-agent-serviceaccount.yaml
+  - ./wazuh-agent-configmap.yaml
+
+# Optional patches (resource requests/limits) can be added later via patchesStrategicMerge.

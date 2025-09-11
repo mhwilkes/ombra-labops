@@ -34,7 +34,7 @@ spec:
                       path: root-ca.pem
       containers:
         - name: wazuh-dashboard
-          image: wazuh/wazuh-dashboard:4.12.0
+          image: wazuh/wazuh-dashboard:4.13.0-rc4
           env:
             - name: INDEXER_URL
               value: https://indexer:9200

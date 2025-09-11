@@ -45,7 +45,7 @@ spec:
         fsGroup: 101
       containers:
         - name: wazuh-manager
-          image: wazuh/wazuh-manager:4.12.0
+          image: wazuh/wazuh-manager:4.13.0-rc4
           securityContext:
             capabilities:
               add: ["SYS_CHROOT"]
@@ -139,18 +139,9 @@ spec:
             - name: wazuh-manager-master
               mountPath: /var/lib/filebeat
               subPath: filebeat/var/lib/filebeat
-      volumeClaimTemplates:
-        - metadata:
-            name: wazuh-manager-master
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            storageClassName: wazuh-storage
-            resources:
-              requests:
-                storage: 500Mi
       initContainers:
         - name: generate-ossec-config
-          image: wazuh/wazuh-manager:4.12.0
+          image: wazuh/wazuh-manager:4.13.0-rc4
           command:
             - sh
             - -c
@@ -205,3 +196,13 @@ spec:
             - name: config
               mountPath: /config-template
               readOnly: true
+  volumeClaimTemplates:
+    - metadata:
+        name: wazuh-manager-master
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: wazuh-storage
+        resources:
+          requests:
+            storage: 500Mi

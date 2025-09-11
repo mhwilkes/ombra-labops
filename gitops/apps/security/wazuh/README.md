@@ -1,6 +1,6 @@
 # Wazuh on Kubernetes (GitOps via Argo CD)
 
-This folder wires the official Wazuh Kubernetes manifests (v4.12.0) into your cluster using Kustomize and Argo CD.
+This folder wires the official Wazuh Kubernetes manifests (v4.13.0-rc4) into your cluster using Kustomize and Argo CD.
 
 What’s included:
 
@@ -112,4 +112,4 @@ References:
 
 - [Wazuh deployment on Kubernetes](https://documentation.wazuh.com/current/deployment-options/deploying-with-kubernetes/kubernetes-deployment.html)
 - [Wazuh Kubernetes configuration](https://documentation.wazuh.com/current/deployment-options/deploying-with-kubernetes/kubernetes-conf.html)
-- [wazuh/wazuh-kubernetes v4.12.0](https://github.com/wazuh/wazuh-kubernetes/tree/v4.12.0)
+- [wazuh/wazuh-kubernetes v4.13.0-rc4](https://github.com/wazuh/wazuh-kubernetes/tree/v4.13.0-rc4)
