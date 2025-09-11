@@ -12,7 +12,7 @@ data:
       <client>
         <!-- Data channel: send events to worker service (port 1514 exposed there) -->
         <server>
-          <address>wazuh-workers</address>
+          <address>wazuh-api.michaelwilkes.dev</address>
           <protocol>tcp</protocol>
         </server>
         <!-- Optional future failover: add master service as secondary if desired -->
