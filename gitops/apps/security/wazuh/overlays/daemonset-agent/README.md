@@ -104,5 +104,60 @@ To proceed you must either:
 
 PVCs are preserved unless explicitly deleted, so logs and state remain intact.
 
+## Troubleshooting Missing Agents
+
+If no agents appear in the Wazuh manager dashboard or `agent_control -lc`, work through these steps:
+
+* Confirm DaemonSet pods exist.
+
+  ```powershell
+  kubectl -n wazuh get ds wazuh-agent
+  kubectl -n wazuh get pods -l app=wazuh-agent -o wide
+  ```
+
+* Inspect an agent pod log for registration lines (look for `authd` / `Connected to`).
+
+  ```powershell
+  kubectl -n wazuh logs -l app=wazuh-agent --tail=100
+  ```
+
+* Verify the registration password secret.
+
+  ```powershell
+  kubectl -n wazuh get secret wazuh-authd-pass -o yaml
+  ```
+
+* Check manager logs.
+
+  ```powershell
+  kubectl -n wazuh exec -it sts/wazuh-manager-master -- tail -n 100 /var/ossec/logs/ossec.log
+  ```
+
+* Confirm DNS resolution from an agent pod.
+
+  ```powershell
+  kubectl -n wazuh exec -it $(kubectl -n wazuh get pods -l app=wazuh-agent -o jsonpath='{.items[0].metadata.name}') -- getent hosts wazuh || nslookup wazuh
+  ```
+
+* Test TCP connectivity to manager ports (1514 data, 1515 authd).
+
+  ```powershell
+  kubectl -n wazuh run tmp-test --rm -i --image=busybox --restart=Never -- sh -c 'nc -vz wazuh 1514 && nc -vz wazuh 1515'
+  ```
+
+* List (and optionally prune) registered agents if duplicates or stale entries exist.
+
+  ```powershell
+  kubectl -n wazuh exec -it sts/wazuh-manager-master -- /var/ossec/bin/manage_agents -l
+  ```
+
+* Ensure manager authd is enabled (check for `<auth>` block in the manager config or defaults in 4.13+).
+
+After adjustments, delete one agent pod to force re-registration:
+
+```powershell
+kubectl -n wazuh delete pod <agent-pod-name>
+```
+
 ---
 Questions or tweaks? Extend this overlay or create another specialized one (e.g. `daemonset-agent-hardened`).

@@ -13,11 +13,17 @@ data:
       <client>
         <server>
           <address>wazuh</address>
-          <port>1514</port>
-          <protocol>tcp</protocol>
         </server>
         <config-profile>k8s-node</config-profile>
       </client>
+      <auth>
+        <disabled>no</disabled>
+        <use_password>yes</use_password>
+        <server>
+          <address>wazuh</address>
+          <port>1515</port>
+        </server>
+      </auth>
       <logging>
         <log_format>json</log_format>
       </logging>
@@ -28,6 +34,12 @@ data:
       </localfile>
       <localfile>
         <location>/var/log/kube-apiserver.log</location>
+        <log_format>syslog</log_format>
+        <ignore_binaries>no</ignore_binaries>
+      </localfile>
+      <!-- Capture node syslog/journal export if present -->
+      <localfile>
+        <location>/var/log/syslog</location>
         <log_format>syslog</log_format>
         <ignore_binaries>no</ignore_binaries>
       </localfile>

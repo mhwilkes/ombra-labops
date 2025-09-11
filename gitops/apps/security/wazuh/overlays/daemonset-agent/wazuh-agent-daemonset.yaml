@@ -39,15 +39,18 @@ spec:
           env:
             - name: WAZUH_MANAGER
               value: wazuh
-            - name: WAZUH_MANAGER_PORT
-              value: "1514"
-            - name: WAZUH_PROTOCOL
-              value: tcp
+            # Let the image defaults handle port/protocol unless override needed.
+            - name: WAZUH_AGENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: WAZUH_REGISTRATION_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: wazuh-authd-pass
                   key: authd.pass
+            - name: AUTHD_SERVER
+              value: wazuh
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
