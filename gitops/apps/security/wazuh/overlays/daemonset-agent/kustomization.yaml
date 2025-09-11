@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: wazuh
+
+resources:
+  - ../../base
+  - ../../components/agent
+
+# Optional patches (resource requests/limits) can be added later via patchesStrategicMerge.
+patches:
+  # Force Argo CD (if managing this overlay) to replace the StatefulSets instead of patching immutable fields.
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-master
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-master
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: wazuh-manager-worker
+    patch: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: wazuh-manager-worker
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true
