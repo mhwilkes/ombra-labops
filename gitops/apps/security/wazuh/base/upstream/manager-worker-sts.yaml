@@ -172,6 +172,8 @@ spec:
                 echo "FATAL: WAZUH_CLUSTER_KEY env var empty" >&2
                 exit 2
               fi
+              chown root:wazuh "$DEST_TMP" 2>/dev/null || true
+              chmod 640 "$DEST_TMP" 2>/dev/null || true
               echo "Generated ossec.conf (cluster section):" >&2
               awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST_TMP" >&2 || true
           env:
