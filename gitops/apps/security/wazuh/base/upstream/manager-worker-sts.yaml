@@ -9,7 +9,8 @@ spec:
       app: wazuh-manager
       node-type: worker
   serviceName: wazuh-cluster
-  podManagementPolicy: Parallel
+  # NOTE: Reverted to OrderedReady for immutability reasons (see master StatefulSet comment).
+  podManagementPolicy: OrderedReady
   template:
     metadata:
       labels:

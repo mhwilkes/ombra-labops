@@ -9,7 +9,9 @@ spec:
       app: wazuh-manager
       node-type: master
   serviceName: wazuh-cluster
-  podManagementPolicy: Parallel
+  # NOTE: Changed from Parallel back to OrderedReady because podManagementPolicy is immutable after creation.
+  # If you require Parallel, you must delete & recreate the StatefulSet (or use ArgoCD Replace) instead of apply.
+  podManagementPolicy: OrderedReady
   template:
     metadata:
       labels:

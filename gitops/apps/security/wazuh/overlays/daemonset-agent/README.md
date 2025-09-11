@@ -83,5 +83,26 @@ Or configure an Argo CD Application to point to this overlay instead of the base
 - Integrate with Infisical to parameterize additional agent config settings.
 - Optionally label nodes to control scheduling (e.g. exclude small edge nodes).
 
+## StatefulSet Immutability Note
+
+If you modify immutable fields of the manager StatefulSets (e.g. `podManagementPolicy`, `serviceName`, or change/remove a `volumeClaimTemplates` entry) after initial creation, a simple `kubectl apply` will fail with:
+
+```text
+spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'ordinals', 'template', 'updateStrategy', 'revisionHistoryLimit', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden
+```
+
+To proceed you must either:
+
+1. Delete the StatefulSet (retain PVCs) and re-apply:
+
+  ```powershell
+  kubectl -n wazuh delete sts wazuh-manager-master wazuh-manager-worker --cascade=orphan
+  kubectl apply -k gitops/apps/security/wazuh/overlays/daemonset-agent
+  ```
+
+1. Or (recommended with Argo CD) use the included `Replace=true` annotation patches so Argo performs a full object replacement.
+
+PVCs are preserved unless explicitly deleted, so logs and state remain intact.
+
 ---
 Questions or tweaks? Extend this overlay or create another specialized one (e.g. `daemonset-agent-hardened`).
