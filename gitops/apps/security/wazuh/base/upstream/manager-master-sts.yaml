@@ -160,6 +160,9 @@ spec:
               DEST_TMP=/wazuh-config-mount/etc/ossec.conf
               if [ ! -f "$TEMPLATE" ]; then echo "Template not found: $TEMPLATE" >&2; exit 1; fi
               cp "$TEMPLATE" "$DEST_TMP"
+              # Debug: show raw cluster section before substitutions
+              echo '--- Raw cluster section (pre-substitution) ---' >&2
+              awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST_TMP" >&2 || true
               if [ -n "${WAZUH_CLUSTER_KEY:-}" ]; then
                 sed -i "s|<key>CHANGEME</key>|<key>${WAZUH_CLUSTER_KEY}</key>|" "$DEST_TMP"
               fi
@@ -172,6 +175,11 @@ spec:
                 echo "FATAL: WAZUH_CLUSTER_KEY env var empty" >&2
                 exit 2
               fi
+              # Remove any lingering unreplaced placeholder nodes like NODE_IP from legacy templates
+              if grep -q 'NODE_IP' "$DEST_TMP"; then
+                echo 'Found NODE_IP placeholder in ossec.conf, removing offending lines' >&2
+                sed -i '/NODE_IP/d' "$DEST_TMP"
+              fi
               # Ensure permissions per Wazuh expectations
               chown root:wazuh "$DEST_TMP" 2>/dev/null || true
               chmod 640 "$DEST_TMP" 2>/dev/null || true
@@ -179,7 +187,7 @@ spec:
               cp "$DEST_TMP" /var/ossec/etc/ossec.conf
               chown root:wazuh /var/ossec/etc/ossec.conf 2>/dev/null || true
               chmod 640 /var/ossec/etc/ossec.conf 2>/dev/null || true
-              echo "Generated ossec.conf (cluster section):" >&2
+              echo "--- Final cluster section (post-cleanup) ---" >&2
               awk '/<cluster>/{flag=1} /<\/cluster>/{print;flag=0} flag' "$DEST_TMP" >&2 || true
           env:
             - name: WAZUH_CLUSTER_KEY
