@@ -33,7 +33,7 @@ patches:
               - name: wazuh-dashboard
                 env:
                   - name: WAZUH_API_URL
-                    value: https://wazuh:55000
+                    value: https://wazuh
                   - name: WAZUH_API_USER
                     valueFrom:
                       secretKeyRef:
