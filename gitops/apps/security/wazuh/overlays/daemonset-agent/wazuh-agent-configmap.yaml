@@ -41,10 +41,9 @@ data:
         </server>
       </auth>
 
-      <logging>
+      <global>
         <log_format>json</log_format>
-        <queue_size>131072</queue_size>
-      </logging>
+      </global>
 
       <!-- Container stdout/stderr JSON logs -->
       <localfile>
@@ -72,7 +71,7 @@ data:
 
       <!-- Lightweight File Integrity Monitoring for kubelet state (Talos-specific tuning) -->
       <syscheck>
-        <enabled>yes</enabled>
+        <disabled>no</disabled>
         <frequency>7200</frequency>
         <directories check_all="yes" realtime="no">/var/lib/kubelet</directories>
         <!-- Add only if path exists and is useful: /etc/kubernetes -->
@@ -88,16 +87,11 @@ data:
         <interval>12h</interval>
       </sca>
 
-      <!-- Not effective on Talos (no package manager); keep disabled until needed -->
-      <vulnerability-detector>
-        <enabled>no</enabled>
-      </vulnerability-detector>
-
-      <syscollector>
-        <enabled>yes</enabled>
+      <wodle name="syscollector">
+        <disabled>no</disabled>
         <scan_on_start>yes</scan_on_start>
         <interval>12h</interval>
-      </syscollector>
+      </wodle>
 
       <labels>
         <label key="k8s.cluster">ombra</label>
