@@ -13,6 +13,20 @@ Instead of running an agent sidecar per application Pod (high overhead), this mo
 
 Good when you want broad visibility of container logs with minimal operational burden.
 
+## Talos-Specific Optimisations (Applied)
+
+Because this cluster uses Talos + containerd (no Docker, no CRI-O, no journald/syslog paths by default), the DaemonSet and configuration were tuned:
+
+- Removed unused hostPath mounts: `/var/lib/docker/containers`, `/var/log/crio`, `/run/log/journal`.
+- Added `/var/lib/kubelet` (read-only) for lightweight FIM of kubelet state and plugin metadata.
+- Switched container log collection to a glob pattern `/var/log/containers/*.log` instead of recursive directory walking.
+- Added exclusions for common noisy system Pods (coredns, metrics-server, kube-proxy) in the `ConfigMap`.
+- Introduced an agent group `k8s-talos-nodes` via `WAZUH_AGENT_GROUP` env var for easier policy/rule scoping on the manager.
+- Enabled lean modules: `syscheck` (focused), `sca`, `syscollector`; kept `vulnerability-detector` disabled (Talos immutable, no package manager).
+- Added labels (`k8s.cluster`, `k8s.node`, `platform`) inside `ossec.conf` to improve search and rule targeting.
+
+If later you add Kubernetes audit logging, un-comment the audit `<localfile>` block and mount the audit log host path (usually `/var/log/kubernetes/audit.log`).
+
 ## Contents
 
 Resources introduced by this overlay:
@@ -82,6 +96,7 @@ Or configure an Argo CD Application to point to this overlay instead of the base
 - Add file integrity monitoring (mount targeted host directories + enable `<syscheck>` section).
 - Integrate with Infisical to parameterize additional agent config settings.
 - Optionally label nodes to control scheduling (e.g. exclude small edge nodes).
+- (Optional) Add an initContainer to substitute `%NODE_NAME%` inside `ossec.conf` if you prefer not to rely on Wazuh's agent name for that label.
 
 ## StatefulSet Immutability Note
 
@@ -108,50 +123,50 @@ PVCs are preserved unless explicitly deleted, so logs and state remain intact.
 
 If no agents appear in the Wazuh manager dashboard or `agent_control -lc`, work through these steps:
 
-* Confirm DaemonSet pods exist.
+- Confirm DaemonSet pods exist.
 
   ```powershell
   kubectl -n wazuh get ds wazuh-agent
   kubectl -n wazuh get pods -l app=wazuh-agent -o wide
   ```
 
-* Inspect an agent pod log for registration lines (look for `authd` / `Connected to`).
+- Inspect an agent pod log for registration lines (look for `authd` / `Connected to`).
 
   ```powershell
   kubectl -n wazuh logs -l app=wazuh-agent --tail=100
   ```
 
-* Verify the registration password secret.
+- Verify the registration password secret.
 
   ```powershell
   kubectl -n wazuh get secret wazuh-authd-pass -o yaml
   ```
 
-* Check manager logs.
+- Check manager logs.
 
   ```powershell
   kubectl -n wazuh exec -it sts/wazuh-manager-master -- tail -n 100 /var/ossec/logs/ossec.log
   ```
 
-* Confirm DNS resolution from an agent pod.
+- Confirm DNS resolution from an agent pod.
 
   ```powershell
   kubectl -n wazuh exec -it $(kubectl -n wazuh get pods -l app=wazuh-agent -o jsonpath='{.items[0].metadata.name}') -- getent hosts wazuh || nslookup wazuh
   ```
 
-* Test TCP connectivity to manager ports (1514 data, 1515 authd).
+- Test TCP connectivity to manager ports (1514 data, 1515 authd).
 
   ```powershell
   kubectl -n wazuh run tmp-test --rm -i --image=busybox --restart=Never -- sh -c 'nc -vz wazuh 1514 && nc -vz wazuh 1515'
   ```
 
-* List (and optionally prune) registered agents if duplicates or stale entries exist.
+- List (and optionally prune) registered agents if duplicates or stale entries exist.
 
   ```powershell
   kubectl -n wazuh exec -it sts/wazuh-manager-master -- /var/ossec/bin/manage_agents -l
   ```
 
-* Ensure manager authd is enabled (check for `<auth>` block in the manager config or defaults in 4.13+).
+- Ensure manager authd is enabled (check for `<auth>` block in the manager config or defaults in 4.13+).
 
 After adjustments, delete one agent pod to force re-registration:
 

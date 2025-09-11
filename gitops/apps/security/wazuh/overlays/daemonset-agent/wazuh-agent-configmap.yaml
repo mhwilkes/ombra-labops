@@ -9,13 +9,29 @@ metadata:
 data:
   # Minimal Wazuh agent ossec.conf fragment - will be wrapped or used directly by init script.
   ossec.conf: |
+    <!--
+      Talos-optimised Wazuh Agent configuration
+      Changes vs original minimal fragment:
+        * Explicit TCP protocol + larger queue.
+        * Narrow, glob-based container log collection (no recursive walk of /var/log/containers directory).
+        * Exclusions for common noisy core components (adjust as needed).
+        * Optional pod log collection (can be commented out if volume is high).
+        * Added lightweight FIM (syscheck) for kubelet state only; Talos OS is largely immutable.
+        * Vulnerability detector disabled (Talos lacks traditional package manager).
+        * Added SCA + Syscollector (limited but still provides inventory metadata).
+        * Labels applied for cluster, node and platform (node substituted by init or left literal).
+        * Removed syslog/journal & kube-apiserver log paths that are not present by default in Talos.
+    -->
     <ossec_config>
       <client>
         <server>
           <address>wazuh</address>
+          <protocol>tcp</protocol>
+          <port>1514</port>
         </server>
-        <config-profile>k8s-node</config-profile>
+        <config-profile>k8s-talos-node</config-profile>
       </client>
+
       <auth>
         <disabled>no</disabled>
         <use_password>yes</use_password>
@@ -24,23 +40,68 @@ data:
           <port>1515</port>
         </server>
       </auth>
+
       <logging>
         <log_format>json</log_format>
+        <queue_size>131072</queue_size>
       </logging>
+
+      <!-- Container stdout/stderr JSON logs -->
       <localfile>
-        <location>/var/log/containers</location>
+        <location>/var/log/containers/*.log</location>
         <log_format>json</log_format>
-        <recursive>yes</recursive>
+        <!-- Exclude known noisy infra pods to reduce index volume (tune for your cluster) -->
+        <exclude>/var/log/containers/*coredns*</exclude>
+        <exclude>/var/log/containers/*metrics-server*</exclude>
+        <exclude>/var/log/containers/*kube-proxy*</exclude>
       </localfile>
+
+      <!-- Optional: Per-pod rotated logs (comment out if too noisy) -->
       <localfile>
-        <location>/var/log/kube-apiserver.log</location>
-        <log_format>syslog</log_format>
-        <ignore_binaries>no</ignore_binaries>
+        <location>/var/log/pods/*/*.log</location>
+        <log_format>json</log_format>
       </localfile>
-      <!-- Capture node syslog/journal export if present -->
+
+      <!-- Uncomment when kube-apiserver audit logs are enabled & mounted -->
+      <!--
       <localfile>
-        <location>/var/log/syslog</location>
-        <log_format>syslog</log_format>
-        <ignore_binaries>no</ignore_binaries>
+        <location>/var/log/kubernetes/audit.log</location>
+        <log_format>json</log_format>
       </localfile>
+      -->
+
+      <!-- Lightweight File Integrity Monitoring for kubelet state (Talos-specific tuning) -->
+      <syscheck>
+        <enabled>yes</enabled>
+        <frequency>7200</frequency>
+        <directories check_all="yes" realtime="no">/var/lib/kubelet</directories>
+        <!-- Add only if path exists and is useful: /etc/kubernetes -->
+        <!-- <directories check_all="yes" realtime="no">/etc/kubernetes</directories> -->
+        <ignore>/var/lib/kubelet/pods</ignore>
+        <ignore>/var/lib/kubelet/plugins</ignore>
+        <ignore>/var/lib/kubelet/device-plugins</ignore>
+      </syscheck>
+
+      <sca>
+        <enabled>yes</enabled>
+        <scan_on_start>yes</scan_on_start>
+        <interval>12h</interval>
+      </sca>
+
+      <!-- Not effective on Talos (no package manager); keep disabled until needed -->
+      <vulnerability-detector>
+        <enabled>no</enabled>
+      </vulnerability-detector>
+
+      <syscollector>
+        <enabled>yes</enabled>
+        <scan_on_start>yes</scan_on_start>
+        <interval>12h</interval>
+      </syscollector>
+
+      <labels>
+        <label key="k8s.cluster">ombra</label>
+        <label key="k8s.node">%NODE_NAME%</label>
+        <label key="platform">talos</label>
+      </labels>
     </ossec_config>

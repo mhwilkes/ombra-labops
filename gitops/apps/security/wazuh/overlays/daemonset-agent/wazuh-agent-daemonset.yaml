@@ -55,6 +55,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: WAZUH_AGENT_GROUP
+              value: k8s-talos-nodes
           resources:
             requests:
               cpu: 50m
@@ -72,14 +74,8 @@ spec:
             - name: pods
               mountPath: /var/log/pods
               readOnly: true
-            - name: dockerlogs
-              mountPath: /var/lib/docker/containers
-              readOnly: true
-            - name: cri-o
-              mountPath: /var/log/crio
-              readOnly: true
-            - name: runlog
-              mountPath: /run/log/journal
+            - name: kubelet
+              mountPath: /var/lib/kubelet
               readOnly: true
             - name: config
               # Override default agent configuration
@@ -102,15 +98,9 @@ spec:
         - name: pods
           hostPath:
             path: /var/log/pods
-        - name: dockerlogs
+        - name: kubelet
           hostPath:
-            path: /var/lib/docker/containers
-        - name: cri-o
-          hostPath:
-            path: /var/log/crio
-        - name: runlog
-          hostPath:
-            path: /run/log/journal
+            path: /var/lib/kubelet
         - name: config
           configMap:
             name: wazuh-agent-config
