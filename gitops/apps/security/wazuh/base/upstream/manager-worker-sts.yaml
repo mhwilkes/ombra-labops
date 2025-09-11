@@ -9,8 +9,8 @@ spec:
       app: wazuh-manager
       node-type: worker
   serviceName: wazuh-cluster
-  # NOTE: Reverted to OrderedReady for immutability reasons (see master StatefulSet comment).
-  podManagementPolicy: OrderedReady
+  # Using Parallel to match existing live StatefulSet (immutable). Delete & recreate if a change is needed.
+  podManagementPolicy: Parallel
   template:
     metadata:
       labels:
