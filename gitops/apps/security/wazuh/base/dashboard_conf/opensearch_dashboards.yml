@@ -1,8 +1,0 @@
-server.host: 0.0.0.0
-opensearch.hosts: ["https://indexer:9200"]
-opensearch.ssl.verificationMode: full
-opensearch.ssl.certificateAuthorities: ["/usr/share/wazuh-dashboard/certs/root-ca.pem"]
-opensearch.requestHeadersWhitelist: ["Authorization", "securitytenant"]
-server.ssl.enabled: true
-server.ssl.certificate: /usr/share/wazuh-dashboard/certs/cert.pem
-server.ssl.key: /usr/share/wazuh-dashboard/certs/key.pem
