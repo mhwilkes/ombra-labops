@@ -10,11 +10,13 @@ data:
   ossec.conf: |
     <ossec_config>
       <client>
+        <!-- Data channel: send events to worker service (port 1514 exposed there) -->
         <server>
-          <address>wazuh</address>
+          <address>wazuh-workers</address>
           <protocol>tcp</protocol>
-          <port>1514</port>
         </server>
+        <!-- Optional future failover: add master service as secondary if desired -->
+        <!-- <server><address>wazuh</address><protocol>tcp</protocol></server> -->
         <config-profile>k8s-talos-node</config-profile>
       </client>
       <auth>
