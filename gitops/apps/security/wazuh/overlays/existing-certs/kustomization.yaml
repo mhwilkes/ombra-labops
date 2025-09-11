@@ -160,7 +160,7 @@ patches:
             <!-- Remote (manager <-> agents). Wazuh 4.12 expects direct elements, not nested <connection><type>. -->
             <remote>
               <connection>secure</connection>
-              <port>1515</port>
+              <port>1514</port>
               <protocol>tcp</protocol>
             </remote>
             <cluster>
@@ -208,7 +208,7 @@ patches:
             </global>
             <remote>
               <connection>secure</connection>
-              <port>1515</port>
+              <port>1514</port>
               <protocol>tcp</protocol>
             </remote>
             <cluster>
@@ -218,10 +218,6 @@ patches:
               <key>CHANGEME</key>
               <port>1516</port>
               <bind_addr>0.0.0.0</bind_addr>
-              <nodes>
-                <node>wazuh-manager-master-0.wazuh-cluster</node>
-                <node>wazuh-manager-worker-0.wazuh-cluster</node>
-              </nodes>
               <hidden>no</hidden>
               <disabled>no</disabled>
             </cluster>
