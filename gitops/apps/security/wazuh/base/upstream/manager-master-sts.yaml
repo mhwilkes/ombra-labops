@@ -95,10 +95,6 @@ spec:
             - name: config
               mountPath: /config-template
               readOnly: true
-            - name: config-generated
-              mountPath: /var/ossec/etc/ossec.conf
-              subPath: ossec.conf
-              readOnly: true
             - name: filebeat-certs
               mountPath: /etc/ssl/root-ca.pem
               subPath: root-ca.pem
