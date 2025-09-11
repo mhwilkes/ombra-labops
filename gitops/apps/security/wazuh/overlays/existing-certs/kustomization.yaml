@@ -250,3 +250,19 @@ patches:
               <location>/var/ossec/logs/alerts/alerts.json</location>
             </localfile>
           </ossec_config>
+  # Add agent data port 1514 to wazuh Service (upstream master service lacked it)
+  - target:
+      version: v1
+      kind: Service
+      name: wazuh
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: wazuh
+      spec:
+        ports:
+          - name: agent-data
+            port: 1514
+            targetPort: 1514
+            protocol: TCP

@@ -10,13 +10,16 @@ data:
   ossec.conf: |
     <ossec_config>
       <client>
-        <!-- Data channel: send events to worker service (port 1514 exposed there) -->
+        <!-- Primary: unified wazuh Service (now exposes 1514/1515/55000) -->
         <server>
-          <address>wazuh-api.michaelwilkes.dev</address>
+          <address>wazuh</address>
           <protocol>tcp</protocol>
         </server>
-        <!-- Optional future failover: add master service as secondary if desired -->
-        <!-- <server><address>wazuh</address><protocol>tcp</protocol></server> -->
+        <!-- Failover: direct to workers Service if master endpoint unreachable -->
+        <server>
+          <address>wazuh-workers</address>
+          <protocol>tcp</protocol>
+        </server>
         <config-profile>k8s-talos-node</config-profile>
       </client>
       <auth>
