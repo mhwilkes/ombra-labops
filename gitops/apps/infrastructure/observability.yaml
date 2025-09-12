@@ -1,0 +1,354 @@
+## Grafana (deploy after datasources backends up)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 8.5.11
+    helm:
+      values: |
+        persistence:
+          enabled: true
+          size: 5Gi
+          storageClassName: ceph-rbd # Adjust if different
+        adminUser: admin
+        adminPassword: admin123 # TODO: replace via Infisical secret ref / Secret valueFrom
+        service:
+          type: ClusterIP
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Mimir
+                type: prometheus
+                access: proxy
+                url: http://mimir-nginx.observability.svc.cluster.local
+                isDefault: true
+              - name: Loki
+                type: loki
+                access: proxy
+                url: http://loki.observability.svc.cluster.local:3100
+              - name: Tempo
+                type: tempo
+                access: proxy
+                url: http://tempo.observability.svc.cluster.local:3100
+                jsonData:
+                  tracesToLogsV2:
+                    datasourceUid: loki
+                    filterByTraceID: true
+        dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+              - name: default
+                orgId: 1
+                folder: ''
+                type: file
+                disableDeletion: false
+                editable: true
+                options:
+                  path: /var/lib/grafana/dashboards/default
+        dashboards: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# Mimir (monolithic mode to start)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mimir
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: mimir-distributed
+    targetRevision: 5.2.0 # pin suitable version
+    helm:
+      values: |
+        global:
+          extraEnv:
+            - name: JAEGER_AGENT_HOST
+              value: "tempo.observability.svc.cluster.local"
+        runtimeConfig: {}
+        mimir:
+          structuredConfig:
+            limits:
+              ingestion_rate_mb: 4
+              ingestion_burst_size_mb: 6
+            common:
+              storage:
+                backend: filesystem
+                filesystem:
+                  dir: /data
+        ingester:
+          replicas: 1
+          persistentVolume:
+            enabled: true
+            size: 10Gi
+            storageClass: ceph-rbd
+        compactor:
+          replicas: 1
+        store_gateway:
+          replicas: 1
+        alertmanager:
+          enabled: false
+        ruler:
+          enabled: false
+        metaMonitoring:
+          dashboards:
+            enabled: true
+            label: grafana_dashboard
+            labelValue: "1"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# Loki
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: loki
+    targetRevision: 5.41.4
+    helm:
+      values: |
+        deploymentMode: SingleBinary
+        loki:
+          commonConfig:
+            replication_factor: 1
+          storage:
+            type: filesystem
+          auth_enabled: false
+        singleBinary:
+          replicas: 1
+          persistence:
+            enabled: true
+            size: 10Gi
+            storageClass: ceph-rbd
+        gateway:
+          enabled: false
+        read:
+          replicas: 0
+        write:
+          replicas: 0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# Tempo
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tempo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: tempo
+    targetRevision: 1.16.0
+    helm:
+      values: |
+        tempo:
+          storage:
+            trace:
+              backend: local
+              local:
+                path: /var/tempo/traces
+          metricsGenerator:
+            enabled: false
+        persistence:
+          enabled: true
+          size: 10Gi
+          storageClassName: ceph-rbd
+        ingress:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# Promtail
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: promtail
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: promtail
+    targetRevision: 6.15.5
+    helm:
+      values: |
+        config:
+          clients:
+            - url: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+          snippets:
+            pipelineStages:
+              - cri: {}
+        extraScrapeConfigs: []
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# Grafana Alloy (agent)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: 0.5.0
+    helm:
+      values: |
+        alloy:
+          extraPorts:
+            - name: otlp-grpc
+              port: 4317
+            - name: otlp-http
+              port: 4318
+          configMap:
+            create: true
+            content: |
+              loki.write "default" {
+                endpoint { url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push" }
+              }
+              prometheus.remote_write "default" {
+                endpoint { url = "http://mimir-nginx.observability.svc.cluster.local/api/v1/push" }
+              }
+              prometheus.scrape "kube-state-metrics" { targets = [{ "__address__" = "kube-state-metrics.observability.svc.cluster.local:8080" }] }
+              prometheus.scrape "node-exporter" { targets = [{ "__address__" = "node-exporter.observability.svc.cluster.local:9100" }] }
+              otelcol.receiver.otlp "default" {}
+              otelcol.exporter.otlp "tempo" { client { endpoint = "tempo.observability.svc.cluster.local:4317" insecure = true } }
+              discovery.kubernetes "pods" {}
+              discovery.kubernetes "nodes" {}
+        controller:
+          type: daemonset
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# kube-state-metrics
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-state-metrics
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-state-metrics
+    targetRevision: 5.23.0
+    helm:
+      values: |
+        prometheus:
+          monitor:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+---
+# node-exporter
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: node-exporter
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: prometheus-node-exporter
+    targetRevision: 4.38.0
+    helm:
+      values: |
+        service:
+          port: 9100
+        prometheus:
+          monitor:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
