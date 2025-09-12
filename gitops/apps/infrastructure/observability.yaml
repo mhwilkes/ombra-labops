@@ -89,27 +89,31 @@ spec:
         runtimeConfig: {}
         mimir:
           structuredConfig:
-            limits:
-              ingestion_rate_mb: 4
-              ingestion_burst_size_mb: 6
             common:
               storage:
                 backend: filesystem
                 filesystem:
                   dir: /data
+            # Lean: omit limits (use defaults); add later if needed.
         ingester:
           replicas: 1
           persistentVolume:
             enabled: true
             size: 10Gi
             storageClass: ceph-rbd
+          zoneAwareReplication:
+            enabled: false
         compactor:
-          replicas: 1
+          enabled: false
         store_gateway:
-          replicas: 1
+          enabled: false
+        overrides_exporter:
+          enabled: false
         alertmanager:
           enabled: false
         ruler:
+          enabled: false
+        minio:
           enabled: false
         metaMonitoring:
           dashboards:
@@ -161,6 +165,13 @@ spec:
           replicas: 0
         write:
           replicas: 0
+        # Disable extras we don't need for lean setup
+        lokiCanary:
+          enabled: false
+        grafana-agent-operator:
+          enabled: false
+        grafanaAgentOperator:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
