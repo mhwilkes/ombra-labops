@@ -93,7 +93,8 @@ spec:
               storage:
                 backend: filesystem
                 filesystem:
-                  dir: /data
+                  # Use a sibling directory to the ingester TSDB path (/data/tsdb) to avoid overlap constraint
+                  dir: /data/blocks
             # Lean: omit limits (use defaults); add later if needed.
         ingester:
           replicas: 1
