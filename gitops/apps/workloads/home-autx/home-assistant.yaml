@@ -19,9 +19,9 @@ spec:
             strategy: Recreate
             pod:
               securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                runAsNonRoot: true
+                runAsUser: 0
+                runAsGroup: 0
+                runAsNonRoot: false
                 fsGroup: 1000
                 fsGroupChangePolicy: "Always"
             containers:
