@@ -98,7 +98,7 @@ spec:
                   - homeassistant.michaelwilkes.dev
   destination:
     server: https://kubernetes.default.svc
-    namespace: home-assistant
+    namespace: home-autx
   syncPolicy:
     automated:
       prune: true
