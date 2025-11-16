@@ -94,7 +94,7 @@ spec:
           config:
             enabled: true
             type: persistentVolumeClaim
-            existingClaim: media-shared-storage
+            existingClaim: home-autx-config
             globalMounts:
               - path: /config
   destination:
