@@ -64,13 +64,7 @@ spec:
                 securityContext:
                   allowPrivilegeEscalation: false
                   readOnlyRootFilesystem: false
-            persistence:
-              config:
-                enabled: true
-                type: persistentVolumeClaim
-                existingClaim: media-shared-storage
-                globalMounts:
-                  - path: /config
+        # persistence is configured at top-level for app-template
         service:
           app:
             controller: homeassistant
@@ -96,6 +90,13 @@ spec:
               - secretName: homeassistant-tls
                 hosts:
                   - homeassistant.michaelwilkes.dev
+        persistence:
+          config:
+            enabled: true
+            type: persistentVolumeClaim
+            existingClaim: media-shared-storage
+            globalMounts:
+              - path: /config
   destination:
     server: https://kubernetes.default.svc
     namespace: home-autx
