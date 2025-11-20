@@ -11,37 +11,41 @@
     "before 5am every weekday",
     "every weekend"
   ],
-  "labels": ["dependencies", "renovate"],
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
   "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}",
   "kubernetes": {
-    "fileMatch": [
-      "cluster-infrastructure/.+\\.yaml$",
-      "gitops/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/cluster-infrastructure/.+\\.yaml$/",
+      "/gitops/.+\\.yaml$/"
     ]
   },
   "helm-values": {
-    "fileMatch": [
-      "cluster-infrastructure/.+\\.yaml$", 
-      "gitops/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/cluster-infrastructure/.+\\.yaml$/",
+      "/gitops/.+\\.yaml$/"
     ]
-  },
-  "docker": {
-    "enabled": true
   },
   "customManagers": [
     {
       "customType": "regex",
       "description": "Match ArgoCD Application image references",
-      "fileMatch": ["gitops/.+\\.yaml$"],
+      "managerFilePatterns": [
+        "/gitops/.+\\.yaml$/"
+      ],
       "matchStrings": [
         "repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker"
     },
     {
-      "customType": "regex", 
+      "customType": "regex",
       "description": "Match Helm chart versions in ArgoCD Applications",
-      "fileMatch": ["gitops/.+\\.yaml$"],
+      "managerFilePatterns": [
+        "/gitops/.+\\.yaml$/"
+      ],
       "matchStrings": [
         "repoURL: (?<registryUrl>https://[^\\s]+)\\s+chart: (?<depName>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
       ],
@@ -68,100 +72,152 @@
   ],
   "registryAliases": {
     "bjw-s-labs.github.io/helm-charts": "https://bjw-s-labs.github.io/helm-charts",
-    "kubernetes.github.io/ingress-nginx": "https://kubernetes.github.io/ingress-nginx", 
+    "kubernetes.github.io/ingress-nginx": "https://kubernetes.github.io/ingress-nginx",
     "dl.cloudsmith.io/public/infisical/helm-charts/helm/charts": "https://dl.cloudsmith.io/public/infisical/helm-charts/helm/charts/",
     "ceph.github.io/csi-charts": "https://ceph.github.io/csi-charts"
   },
   "packageRules": [
     {
+      "matchCategories": [
+        "docker"
+      ],
+      "enabled": true
+    },
+    {
       "description": "Automerge patch and minor Docker updates",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
       "description": "Manual approval for major Docker updates",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["major"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
-      "schedule": ["on sunday"],
+      "schedule": [
+        "on sunday"
+      ],
       "dependencyDashboardApproval": true
     },
     {
       "description": "Manual approval for all Helm chart updates",
-      "matchDatasources": ["helm"],
+      "matchDatasources": [
+        "helm"
+      ],
       "automerge": false,
-      "schedule": ["on sunday"],
+      "schedule": [
+        "on sunday"
+      ],
       "dependencyDashboardApproval": true
     },
     {
       "description": "Group Media Services updates",
-      "matchPackagePatterns": [
-        "plex",
-        "radarr",
-        "sonarr",
-        "bazarr",
-        "prowlarr",
-        "overseerr",
-        "tautulli",
-        "qbittorrent",
-        "sabnzbd",
-        "maintainerr"
-      ],
       "groupName": "Media Services",
-      "schedule": ["on sunday"],
-      "automerge": false
+      "schedule": [
+        "on sunday"
+      ],
+      "automerge": false,
+      "matchPackageNames": [
+        "/plex/",
+        "/radarr/",
+        "/sonarr/",
+        "/bazarr/",
+        "/prowlarr/",
+        "/overseerr/",
+        "/tautulli/",
+        "/qbittorrent/",
+        "/sabnzbd/",
+        "/maintainerr/"
+      ]
     },
     {
       "description": "Group Infrastructure components",
-      "matchPackagePatterns": [
-        "cert-manager",
-        "metallb",
-        "nginx",
-        "rook",
-        "ceph",
-        "argo"
+      "groupName": "Infrastructure Components",
+      "schedule": [
+        "on sunday"
       ],
-      "groupName": "Infrastructure Components", 
-      "schedule": ["on sunday"],
-      "automerge": false
+      "automerge": false,
+      "matchPackageNames": [
+        "/cert-manager/",
+        "/metallb/",
+        "/nginx/",
+        "/rook/",
+        "/ceph/",
+        "/argo/"
+      ]
     },
     {
       "description": "BJW-S App Template updates",
-      "matchPackageNames": ["app-template"],
-      "matchDatasources": ["helm"],
+      "matchPackageNames": [
+        "app-template"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
       "groupName": "BJW-S App Template",
       "automerge": false,
-      "schedule": ["on sunday"]
+      "schedule": [
+        "on sunday"
+      ]
     },
     {
       "description": "NGINX Ingress Controller updates",
-      "matchPackageNames": ["ingress-nginx"],
-      "matchDatasources": ["helm"],
+      "matchPackageNames": [
+        "ingress-nginx"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
       "groupName": "NGINX Ingress",
       "automerge": false,
-      "schedule": ["on sunday"]
+      "schedule": [
+        "on sunday"
+      ]
     },
     {
-      "description": "Infisical Secrets Operator updates", 
-      "matchPackageNames": ["secrets-operator"],
-      "matchDatasources": ["helm"],
+      "description": "Infisical Secrets Operator updates",
+      "matchPackageNames": [
+        "secrets-operator"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
       "groupName": "Secrets Management",
       "automerge": false,
-      "schedule": ["on sunday"]
+      "schedule": [
+        "on sunday"
+      ]
     },
     {
       "description": "Ceph CSI updates",
-      "matchPackageNames": ["ceph-csi-rbd", "ceph-csi-cephfs"],
-      "matchDatasources": ["helm"],
+      "matchPackageNames": [
+        "ceph-csi-rbd",
+        "ceph-csi-cephfs"
+      ],
+      "matchDatasources": [
+        "helm"
+      ],
       "groupName": "Ceph Storage",
       "automerge": false,
-      "schedule": ["on sunday"]
+      "schedule": [
+        "on sunday"
+      ]
     }
   ],
   "vulnerabilityAlerts": {
     "enabled": true,
-    "schedule": ["at any time"],
+    "schedule": [
+      "at any time"
+    ],
     "automerge": true
   },
   "osvVulnerabilityAlerts": true,
