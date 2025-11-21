@@ -1,5 +1,4 @@
 # Kubernetes and Talos configuration files (contain sensitive data)
-*-kubeconfig*
 *-talosconfig*
 
 # Infisical authentication files
