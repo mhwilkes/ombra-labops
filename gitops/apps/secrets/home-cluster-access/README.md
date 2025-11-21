@@ -7,9 +7,11 @@ This application generates a kubeconfig file that allows you to access your Kube
 A PreSync hook job runs before ArgoCD syncs this application. The job:
 1. Finds the ArgoCD cluster secret containing the kubeconfig
 2. Extracts the kubeconfig
-3. Creates two resources in the `argocd` namespace:
+3. Creates two resources in the `secrets` namespace:
    - **Secret**: `cluster-kubeconfig` - Contains the kubeconfig file (ready to download)
    - **ConfigMap**: `cluster-kubeconfig-view` - Contains base64-encoded kubeconfig (easier to view/copy)
+
+These resources are managed by ArgoCD (defined in Git) so they appear in the `secrets-stack` application.
 
 Both resources are labeled with `purpose=cluster-access` for easy filtering in the ArgoCD UI.
 
@@ -24,13 +26,13 @@ Both resources are labeled with `purpose=cluster-access` for easy filtering in t
    - Filter by label: `purpose=cluster-access`
 
 2. **Download the Secret**:
-   - Find the secret `cluster-kubeconfig` in the `argocd` namespace
+   - Find the secret `cluster-kubeconfig` in the `secrets` namespace
    - Click on it to view details
    - Download the `kubeconfig` key value
    - Save it as `~/.kube/config` or use with: `kubectl --kubeconfig=./kubeconfig get nodes`
 
 3. **Or View the ConfigMap**:
-   - Find the configmap `cluster-kubeconfig-view` in the `argocd` namespace
+   - Find the configmap `cluster-kubeconfig-view` in the `secrets` namespace
    - Copy the `kubeconfig.b64` value
    - Decode it: `echo '<base64-value>' | base64 -d > kubeconfig`
 
@@ -38,10 +40,10 @@ Both resources are labeled with `purpose=cluster-access` for easy filtering in t
 
 ```bash
 # Get the kubeconfig from secret
-kubectl -n argocd get secret cluster-kubeconfig -o jsonpath='{.data.kubeconfig}' | base64 -d > ~/.kube/config
+kubectl -n secrets get secret cluster-kubeconfig -o jsonpath='{.data.kubeconfig}' | base64 -d > ~/.kube/config
 
 # Or get from configmap
-kubectl -n argocd get configmap cluster-kubeconfig-view -o jsonpath='{.data.kubeconfig\.b64}' | base64 -d > ~/.kube/config
+kubectl -n secrets get configmap cluster-kubeconfig-view -o jsonpath='{.data.kubeconfig\.b64}' | base64 -d > ~/.kube/config
 ```
 
 ## Troubleshooting
