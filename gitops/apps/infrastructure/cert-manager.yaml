@@ -29,6 +29,12 @@ spec:
         cainjector:
           replicaCount: 1
 
+        # Configure cert-manager to use custom DNS servers for DNS-01 challenge verification
+        # This helps when cluster DNS can't properly resolve external DNS records
+        extraArgs:
+          - --dns01-recursive-nameservers=192.168.0.20:53,8.8.8.8:53,1.1.1.1:53
+          - --dns01-recursive-nameservers-only=true
+
         # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
           enabled: false
