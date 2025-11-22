@@ -105,8 +105,7 @@ spec:
             type: configMap
             name: home-assistant-http-config
             globalMounts:
-              - path: /config
-                subPath: http-config.yaml
+              - path: /config/includes
   destination:
     server: https://kubernetes.default.svc
     namespace: home-autx
