@@ -29,11 +29,11 @@ spec:
         cainjector:
           replicaCount: 1
 
-        # Configure cert-manager to use local DNS server for DNS-01 challenge verification
-        # Using only local DNS (192.168.0.20) because it has the correct/current TXT records
-        # Public DNS servers (1.1.1.1, 8.8.8.8) may have stale/old records
+        # Configure cert-manager to use Cloudflare DNS for DNS-01 challenge verification
+        # Using Cloudflare DNS (1.1.1.1) to match how Cloudflare stores TXT records
+        # This ensures quotes in TXT records are handled consistently
         extraArgs:
-          - --dns01-recursive-nameservers=192.168.0.20:53
+          - --dns01-recursive-nameservers=1.1.1.1:53
 
         # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
