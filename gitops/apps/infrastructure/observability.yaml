@@ -287,13 +287,6 @@ spec:
     helm:
       values: |
         alloy:
-          extraPorts:
-            - name: otlp-grpc
-              containerPort: 4317
-              protocol: TCP
-            - name: otlp-http
-              containerPort: 4318
-              protocol: TCP
           configMap:
             create: true
             content: |
@@ -409,6 +402,8 @@ spec:
               }
         controller:
           type: daemonset
+        service:
+          enabled: false
         rbac:
           create: true
           rules:
