@@ -106,8 +106,10 @@ spec:
             enabled: false
         compactor:
           enabled: false
+          replicas: 0
         store_gateway:
           enabled: false
+          replicas: 0
         overrides_exporter:
           enabled: false
         alertmanager:
@@ -139,6 +141,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   project: default
   source:
@@ -171,6 +174,8 @@ spec:
           enabled: false
         grafanaAgentOperator:
           enabled: false
+          crds:
+            create: false
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
