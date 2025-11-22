@@ -100,8 +100,6 @@ spec:
             existingClaim: home-autx-config
             globalMounts:
               - path: /config
-          http-config:
-            enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: home-autx
