@@ -22,6 +22,18 @@ spec:
         adminPassword: admin123 # TODO: replace via Infisical secret ref / Secret valueFrom
         service:
           type: ClusterIP
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - grafana.michaelwilkes.dev
+          tls:
+            - secretName: grafana-tls
+              hosts:
+                - grafana.michaelwilkes.dev
         datasources:
           datasources.yaml:
             apiVersion: 1
