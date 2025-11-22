@@ -167,21 +167,10 @@ spec:
         write:
           replicas: 0
         # Disable extras we don't need for lean setup
-          lokiCanary:
-            enabled: false
-          grafana-agent-operator:
-            enabled: false
-          grafanaAgentOperator:
-            enabled: false
-          agent:
-            enabled: false
-          agentOperator:
-            enabled: false
-          grafana:
-            agent:
-              enabled: false
-            agentOperator:
-              enabled: false
+        lokiCanary:
+          enabled: false
+        grafanaAgentOperator:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
