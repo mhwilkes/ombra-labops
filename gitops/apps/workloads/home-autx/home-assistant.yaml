@@ -81,11 +81,10 @@ spec:
               nginx.ingress.kubernetes.io/ssl-redirect: "true"
               nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
               nginx.ingress.kubernetes.io/proxy-body-size: "0"
-              nginx.ingress.kubernetes.io/configuration-snippet: |
-                more_set_headers "X-Forwarded-Proto: $scheme";
-                more_set_headers "X-Forwarded-Host: $host";
-                more_set_headers "X-Real-IP: $remote_addr";
+              nginx.ingress.kubernetes.io/proxy-set-headers: "ingress-nginx/nginx-ingress-proxy-headers"
               nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+              nginx.ingress.kubernetes.io/forwarded-for-header: "X-Forwarded-For"
+              nginx.ingress.kubernetes.io/compute-full-forwarded-for: "true"
             hosts:
               - host: ha.michaelwilkes.dev
                 paths:
