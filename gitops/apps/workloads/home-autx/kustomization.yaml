@@ -4,3 +4,4 @@ resources:
   - home-autx-config-pvc.yaml
   - home-assistant.yaml
   - home-assistant-http-config.yaml
+  - home-assistant-config-init.yaml

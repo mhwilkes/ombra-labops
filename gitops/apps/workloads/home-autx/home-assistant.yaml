@@ -104,8 +104,9 @@ spec:
             enabled: true
             type: configMap
             name: home-assistant-http-config
+            # Mount for init container to copy to PVC
             globalMounts:
-              - path: /config/includes
+              - path: /http-config
   destination:
     server: https://kubernetes.default.svc
     namespace: home-autx

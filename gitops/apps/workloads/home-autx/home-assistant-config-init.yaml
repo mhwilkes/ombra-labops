@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: home-assistant-config-init
+  namespace: home-autx
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    app.kubernetes.io/name: home-assistant
+    app.kubernetes.io/managed-by: argocd
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: copy-http-config
+        image: busybox:latest
+        command:
+          - sh
+          - -c
+          - |
+            echo "Copying http-config from ConfigMap to PVC..."
+            mkdir -p /config/includes
+            cp /http-config/http-config.yaml /config/includes/http-config.yaml
+            chown -R 1000:1000 /config/includes
+            echo "http-config.yaml copied successfully"
+            ls -la /config/includes/
+            # Update configuration.yaml to use include if not already set
+            if ! grep -q "includes/http-config.yaml" /config/configuration.yaml; then
+              # Remove any existing http: section
+              sed -i '/^http:/,/^[^ ]/ { /^http:/d; /^[^ ]/!d; }' /config/configuration.yaml
+              # Add the include directive
+              echo "http: !include includes/http-config.yaml" >> /config/configuration.yaml
+              echo "Updated configuration.yaml to use include directive"
+            else
+              echo "configuration.yaml already uses include directive"
+            fi
+            tail -3 /config/configuration.yaml
+        volumeMounts:
+        - name: http-config
+          mountPath: /http-config
+        - name: config
+          mountPath: /config
+        securityContext:
+          runAsUser: 0  # Run as root to set permissions
+          runAsGroup: 0
+      volumes:
+      - name: http-config
+        configMap:
+          name: home-assistant-http-config
+      - name: config
+        persistentVolumeClaim:
+          claimName: home-autx-config
+
