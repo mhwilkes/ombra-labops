@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://charts.jetstack.io
     chart: cert-manager
-    targetRevision: v1.20.0-alpha.0
+    targetRevision: v1.18.2
     helm:
       values: |
         # Install CRDs
@@ -28,14 +28,6 @@ spec:
         # CA Injector configuration
         cainjector:
           replicaCount: 1
-
-        # Configure cert-manager to use Cloudflare DNS for DNS-01 challenge verification
-        # Using --dns01-recursive-nameservers-only forces cert-manager to use ONLY the specified nameserver
-        # Without this flag, cert-manager may fall back to system DNS, causing verification inconsistencies
-        # Cloudflare DNS (1.1.1.1) matches where the TXT records are stored
-        extraArgs:
-          - --dns01-recursive-nameservers-only
-          - --dns01-recursive-nameservers=1.1.1.1:53
 
         # Prometheus monitoring - disabled until Prometheus Operator is installed
         prometheus:
