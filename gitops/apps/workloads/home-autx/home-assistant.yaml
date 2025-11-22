@@ -100,6 +100,24 @@ spec:
             existingClaim: home-autx-config
             globalMounts:
               - path: /config
+          http-config:
+            enabled: true
+            type: configMap
+            name: home-assistant-http-config
+            globalMounts:
+              - path: /config
+                subPath: http-config.yaml
+        configMaps:
+          http-config:
+            enabled: true
+            data:
+              http-config.yaml: |
+                # Reverse proxy configuration
+                use_x_forwarded_for: true
+                trusted_proxies:
+                  - 10.0.0.0/8
+                  - 172.16.0.0/12
+                  - 192.168.0.0/16
   destination:
     server: https://kubernetes.default.svc
     namespace: home-autx
