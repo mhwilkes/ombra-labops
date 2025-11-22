@@ -216,6 +216,11 @@ spec:
                 path: /var/tempo/traces
           metricsGenerator:
             enabled: false
+          otlp:
+            grpc:
+              enabled: true
+            http:
+              enabled: true
         persistence:
           enabled: true
           size: 10Gi
@@ -290,20 +295,129 @@ spec:
           configMap:
             create: true
             content: |
+              // Logs collection and forwarding
+              loki.source.kubernetes "pods" {
+                targets    = discovery.kubernetes.pods.targets
+                forward_to = [loki.process.pods.receiver]
+              }
+
+              loki.process "pods" {
+                forward_to = [loki.write.default.receiver]
+
+                stage.cri {}
+                stage.labels {
+                  values = {
+                    cluster = "home-cluster",
+                  }
+                }
+              }
+
               loki.write "default" {
-                endpoint { url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push" }
+                endpoint {
+                  url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+                }
               }
+
+              // Metrics collection and forwarding
+              discovery.kubernetes "endpoints" {
+                role = "endpoints"
+              }
+
+              prometheus.scrape "kube_state_metrics" {
+                targets = [
+                  {
+                    "__address__" = "kube-state-metrics.observability.svc.cluster.local:8080",
+                    "job" = "kube-state-metrics",
+                  },
+                ]
+                forward_to     = [prometheus.remote_write.default.receiver]
+                scrape_interval = "30s"
+              }
+
+              prometheus.scrape "node_exporter" {
+                targets = discovery.kubernetes.pods.targets
+                forward_to     = [prometheus.remote_write.default.receiver]
+                scrape_interval = "30s"
+                relabel {
+                  source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+                  regex        = "prometheus-node-exporter"
+                  action       = "keep"
+                }
+                relabel {
+                  source_labels = ["__meta_kubernetes_pod_ip"]
+                  target_label  = "__address__"
+                  replacement   = "${1}:9100"
+                }
+              }
+
+              prometheus.scrape "kubernetes_pods" {
+                targets    = discovery.kubernetes.pods.targets
+                forward_to = [prometheus.remote_write.default.receiver]
+                scrape_interval = "30s"
+                relabel {
+                  source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+                  regex        = "true"
+                  action       = "keep"
+                }
+                relabel {
+                  source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+                  regex        = "(.+)"
+                  target_label  = "__metrics_path__"
+                  replacement   = "${1}"
+                }
+                relabel {
+                  source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+                  regex        = "([^:]+)(?::[0-9]+)?;([0-9]+)"
+                  replacement   = "$1:$2"
+                  target_label  = "__address__"
+                }
+              }
+
               prometheus.remote_write "default" {
-                endpoint { url = "http://mimir-nginx.observability.svc.cluster.local/api/v1/push" }
+                endpoint {
+                  url = "http://mimir-nginx.observability.svc.cluster.local/api/v1/push"
+                }
               }
-              prometheus.scrape "kube-state-metrics" { targets = [{ "__address__" = "kube-state-metrics.observability.svc.cluster.local:8080" }] }
-              prometheus.scrape "node-exporter" { targets = [{ "__address__" = "node-exporter.observability.svc.cluster.local:9100" }] }
-              otelcol.receiver.otlp "default" {}
-              otelcol.exporter.otlp "tempo" { client { endpoint = "tempo.observability.svc.cluster.local:4317" insecure = true } }
-              discovery.kubernetes "pods" {}
-              discovery.kubernetes "nodes" {}
+
+              // Traces collection and forwarding
+              otelcol.receiver.otlp "default" {
+                grpc {
+                  endpoint = "0.0.0.0:4317"
+                }
+                http {
+                  endpoint = "0.0.0.0:4318"
+                }
+                output {
+                  traces  = [otelcol.exporter.otlp.tempo.input]
+                  metrics = [otelcol.exporter.otlp.tempo.input]
+                  logs    = [otelcol.exporter.otlp.tempo.input]
+                }
+              }
+
+              otelcol.exporter.otlp "tempo" {
+                client {
+                  endpoint = "tempo.observability.svc.cluster.local:4317"
+                  insecure = true
+                }
+              }
+
+              // Kubernetes discovery
+              discovery.kubernetes "pods" {
+                role = "pod"
+              }
         controller:
           type: daemonset
+        rbac:
+          create: true
+          rules:
+            - apiGroups: [""]
+              resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["discovery.k8s.io"]
+              resources: ["endpointslices"]
+              verbs: ["get", "list", "watch"]
+        serviceAccount:
+          create: true
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
