@@ -82,7 +82,7 @@ spec:
               nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
               nginx.ingress.kubernetes.io/proxy-body-size: "0"
             hosts:
-              - host: homeassistant.michaelwilkes.dev
+              - host: ha.michaelwilkes.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -92,7 +92,7 @@ spec:
             tls:
               - secretName: homeassistant-tls
                 hosts:
-                  - homeassistant.michaelwilkes.dev
+                  - ha.michaelwilkes.dev
         persistence:
           config:
             enabled: true
