@@ -17,23 +17,23 @@
   ],
   "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}",
   "kubernetes": {
-    "managerFilePatterns": [
-      "/cluster-infrastructure/.+\\.yaml$/",
-      "/gitops/.+\\.yaml$/"
+    "fileMatch": [
+      "^cluster-infrastructure/.+\\.yaml$",
+      "^gitops/.+\\.yaml$"
     ]
   },
   "helm-values": {
-    "managerFilePatterns": [
-      "/cluster-infrastructure/.+\\.yaml$/",
-      "/gitops/.+\\.yaml$/"
+    "fileMatch": [
+      "^cluster-infrastructure/.+\\.yaml$",
+      "^gitops/.+\\.yaml$"
     ]
   },
   "customManagers": [
     {
       "customType": "regex",
       "description": "Match ArgoCD Application image references",
-      "managerFilePatterns": [
-        "/gitops/.+\\.yaml$/"
+      "fileMatch": [
+        "^gitops/.+\\.yaml$"
       ],
       "matchStrings": [
         "repository: (?<depName>[^\\s]+)\\s+tag: (?<currentValue>[^\\s]+)"
@@ -43,8 +43,8 @@
     {
       "customType": "regex",
       "description": "Match Helm chart versions in ArgoCD Applications",
-      "managerFilePatterns": [
-        "/gitops/.+\\.yaml$/"
+      "fileMatch": [
+        "^gitops/.+\\.yaml$"
       ],
       "matchStrings": [
         "repoURL: (?<registryUrl>https://[^\\s]+)\\s+chart: (?<depName>[^\\s]+)\\s+targetRevision: (?<currentValue>[^\\s]+)"
