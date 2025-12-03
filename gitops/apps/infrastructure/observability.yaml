@@ -457,7 +457,7 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    targetRevision: 4.38.0
+    targetRevision: 4.49.2
     helm:
       values: |
         service:
