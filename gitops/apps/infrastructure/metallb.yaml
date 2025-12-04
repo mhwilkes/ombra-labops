@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://metallb.github.io/metallb
     chart: metallb
-    targetRevision: 0.15.2    
+    targetRevision: 0.15.3    
     helm:
       values: |
         # MetalLB configuration for bare-metal load balancing
