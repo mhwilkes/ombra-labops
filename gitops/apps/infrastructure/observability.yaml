@@ -144,6 +144,7 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    - ServerSideApply=true
 ---
 # Loki
 apiVersion: argoproj.io/v1alpha1
