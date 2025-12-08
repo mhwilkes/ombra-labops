@@ -132,9 +132,9 @@ spec:
           enabled: false
         metaMonitoring:
           dashboards:
-            enabled: true
-            label: grafana_dashboard
-            labelValue: "1"
+            enabled: false  # Disabled due to ConfigMap annotation size limits (262144 bytes)
+            # The dashboard ConfigMaps are too large and exceed Kubernetes annotation limits
+            # Dashboards can be manually imported into Grafana if needed
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
