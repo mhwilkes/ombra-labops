@@ -184,6 +184,8 @@ spec:
         # Disable extras we don't need for lean setup
         lokiCanary:
           enabled: false
+        tests:
+          enabled: false
         grafanaAgentOperator:
           enabled: false
           crds:
