@@ -91,7 +91,7 @@ spec:
   source:
     repoURL: https://grafana.github.io/helm-charts
     chart: mimir-distributed
-    targetRevision: 5.2.0 # pin suitable version
+    targetRevision: 6.0.5 # pin suitable version
     helm:
       values: |
         global:
