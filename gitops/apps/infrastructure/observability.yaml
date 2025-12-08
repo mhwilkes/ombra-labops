@@ -177,10 +177,11 @@ spec:
             storageClass: ceph-rbd
         gateway:
           enabled: false
+        # Explicitly disable read/write components for SingleBinary mode
         read:
-          replicas: 0
+          enabled: false
         write:
-          replicas: 0
+          enabled: false
         # Disable extras we don't need for lean setup
         lokiCanary:
           enabled: true  # Required by Helm chart validation even when tests are disabled
