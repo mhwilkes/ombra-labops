@@ -1,0 +1,73 @@
+# YAML Linting Configuration
+# See .devcontainer/TOOLS.md for detailed documentation
+
+extends: default
+
+rules:
+  # Line length - allow up to 200 characters (Kubernetes manifests can be long)
+  line-length:
+    max: 200
+    level: warning
+
+  # Indentation - use 2 spaces (standard for YAML)
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Comments - allow comments
+  comments:
+    min-spaces-from-content: 1
+
+  # Document start - don't require document start
+  document-start: disable
+
+  # Trailing spaces - disallow
+  trailing-spaces: enable
+
+  # Empty values - allow null
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Key ordering - disable (not needed for our use case)
+  key-ordering: disable
+
+  # Quoted strings - allow both quoted and unquoted
+  quoted-strings:
+    quote-type: any
+    required: false
+
+  # Braces - allow flow sequences
+  braces:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: 0
+    min-spaces-inside-empty: -1
+
+  # Brackets - allow flow mappings
+  brackets:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: 0
+    min-spaces-inside-empty: -1
+
+  # Colons - require space after colon
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  # Commas - require space after comma
+  commas:
+    max-spaces-before: 0
+    min-spaces-after: 1
+    max-spaces-after: 1
+
+  # Comments indentation - allow comments at any indentation
+  comments-indentation: disable
+
+  # Truthy values - allow yes/no/on/off (common in Kubernetes)
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+    check-keys: false
+

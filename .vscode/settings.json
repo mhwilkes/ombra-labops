@@ -1,0 +1,144 @@
+{
+	// Editor settings
+	"editor.formatOnSave": true,
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"editor.trimAutoWhitespace": true,
+	"editor.rulers": [
+		120
+	],
+	"files.eol": "\n",
+	"files.insertFinalNewline": true,
+	"files.trimTrailingWhitespace": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit"
+	},
+	// YAML settings
+	"yaml.schemas": {
+		"kubernetes": [
+			"**/cluster-infrastructure/**/*.yaml",
+			"**/gitops/**/*.yaml",
+			"**/*k8s*.yaml",
+			"**/*kubernetes*.yaml"
+		],
+		"https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "docker-compose*.yml"
+	},
+	"yaml.format.enable": true,
+	"yaml.format.singleQuote": false,
+	"yaml.format.bracketSpacing": true,
+	"yaml.validate": true,
+	"yaml.hover": true,
+	"yaml.completion": true,
+	"yaml.customTags": [
+		"!And sequence",
+		"!If sequence",
+		"!Not sequence",
+		"!Equals sequence",
+		"!Or sequence",
+		"!FindInMap sequence",
+		"!Base64 sequence",
+		"!Cidr sequence",
+		"!Ref sequence",
+		"!Sub sequence",
+		"!GetAtt sequence",
+		"!GetAZs sequence",
+		"!ImportValue sequence",
+		"!Select sequence",
+		"!Split sequence",
+		"!Join sequence"
+	],
+	// Kubernetes settings
+	"kubernetes.explorer.customResources": true,
+	"kubernetes.validateOnSave": true,
+	"kubernetes.snippets.enabled": true,
+	// Terraform settings
+	"[terraform]": {
+		"editor.defaultFormatter": "hashicorp.terraform",
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.formatDocument": "explicit"
+		}
+	},
+	"[terraform-vars]": {
+		"editor.defaultFormatter": "hashicorp.terraform",
+		"editor.formatOnSave": true
+	},
+	"terraform.format.enable": true,
+	"terraform.languageServer.enable": true,
+	"terraform.languageServer.args": [],
+	// Shell/Bash settings
+	"[shellscript]": {
+		"editor.defaultFormatter": "timonwong.shellcheck",
+		"editor.formatOnSave": true,
+		"editor.tabSize": 2
+	},
+	"shellcheck.enable": true,
+	"shellcheck.run": "onSave",
+	"shellcheck.customArgs": [
+		"--external-sources"
+	],
+	"shellcheck.executablePath": "/usr/bin/shellcheck",
+	"shellcheck.exclude": [],
+	// JSON settings
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features",
+		"editor.formatOnSave": true
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features",
+		"editor.formatOnSave": true
+	},
+	// Terminal settings
+	"terminal.integrated.defaultProfile.linux": "bash",
+	"terminal.integrated.profiles.linux": {
+		"bash": {
+			"path": "/bin/bash",
+			"args": [
+				"-l"
+			]
+		}
+	},
+	"terminal.integrated.enablePersistentSessions": true,
+	"terminal.integrated.scrollback": 10000,
+	// File associations
+	"files.associations": {
+		"*.yaml": "yaml",
+		"*.yml": "yaml",
+		"talosconfig*": "yaml",
+		"*talosconfig*": "yaml",
+		"clusterctl-config*.yaml": "yaml",
+		"renovate.json": "jsonc",
+		"*.tf": "terraform",
+		"*.tfvars": "terraform-vars",
+		"*.hcl": "terraform",
+		".editorconfig": "editorconfig",
+		".shellcheckrc": "shellscript",
+		"*.sh": "shellscript"
+	},
+	// Git settings
+	"git.autofetch": true,
+	"git.confirmSync": false,
+	"git.enableSmartCommit": true,
+	"git.suggestSmartCommit": true,
+	// File explorer settings
+	"files.exclude": {
+		"**/.git": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true
+	},
+	// Search settings
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/bower_components": true,
+		"**/*.code-search": true,
+		"**/.git": true
+	},
+	// Language-specific file patterns
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/**": true,
+		"**/.DS_Store": true
+	}
+}
+

@@ -1,0 +1,28 @@
+{
+  "recommendations": [
+    // YAML support
+    "redhat.vscode-yaml",
+    // Kubernetes tooling
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    // Docker support
+    "ms-azuretools.vscode-docker",
+    // Terraform support
+    "hashicorp.terraform",
+    // Git enhancements
+    "eamodio.gitlens",
+    // EditorConfig support
+    "editorconfig.editorconfig",
+    // Bash/Shell scripting
+    "timonwong.shellcheck",
+    // JSON formatting
+    "mohsen1.prettify-json",
+    // XML support (for some config files)
+    "redhat.vscode-xml",
+    // Additional useful extensions
+    "ms-vscode.vscode-json",
+    "streetsidesoftware.code-spell-checker",
+    "bierner.markdown-preview-github-styles"
+  ],
+  "unwantedRecommendations": []
+}
+

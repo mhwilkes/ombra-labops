@@ -18,7 +18,10 @@ clusterctl*.exe
 Thumbs.db
 
 # Editor files
-.vscode/
+# Allow .vscode/settings.json and .vscode/extensions.json for repository settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo

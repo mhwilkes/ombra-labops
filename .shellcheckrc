@@ -1,0 +1,21 @@
+# ShellCheck Configuration
+# https://github.com/koalaman/shellcheck/wiki
+
+# Enable all optional checks
+enable=all
+
+# Disable specific checks that may be too strict for some use cases
+# SC1090: Can't follow non-constant source. Use a directive to specify location.
+# SC1091: Not following: (error message here)
+# These are disabled because they can be noisy with dynamic sourcing
+disable=SC1090,SC1091
+
+# Shell dialect - use bash when shebang specifies it
+shell=bash
+
+# Source paths - allow external sources (needed for some scripts)
+external-sources=true
+
+# Exclude files/directories (comma-separated)
+exclude-dir=.git,.github,node_modules
+

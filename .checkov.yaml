@@ -1,0 +1,75 @@
+# Checkov Security Scanning Configuration
+# See .devcontainer/TOOLS.md for detailed documentation
+
+# Framework selection
+framework:
+  - terraform
+  - kubernetes
+  - helm
+
+# Output format
+output: cli
+
+# Skip checks (add check IDs here to skip specific checks)
+# Example: skip:
+#   - CKV_AWS_123
+#   - CKV_K8S_45
+
+# Include checks (if you want to only run specific checks)
+# include:
+#   - CKV_AWS_*
+
+# Exclude paths (directories/files to skip)
+# exclude_paths:
+#   - .git
+#   - .terraform
+#   - node_modules
+
+# Soft fail - don't fail the build on failures (useful for gradual adoption)
+soft_fail: false
+
+# Quiet mode - reduce output verbosity
+quiet: false
+
+# Skip download of external policies
+skip_download: false
+
+# Download external checks (BC checks, etc.)
+download_external_checks: true
+
+# External checks directory
+external_checks_dir: []
+
+# External checks git
+external_checks_git: []
+
+# Minimum severity level to report
+# Options: CRITICAL, HIGH, MEDIUM, LOW, INFO
+min_severity: LOW
+
+# Skip checks with specific severity
+# skip_severity: []
+
+# Skip checks with specific categories
+# skip_categories: []
+
+# Use enforcement rules file
+# enforcement_rule: []
+
+# Show progress bar
+show_progress: true
+
+# List of policies to run (empty = all)
+# list: []
+
+# Skip path patterns
+# skip_path:
+#   - .git
+#   - .terraform
+
+# Use API key for Bridgecrew (optional)
+# bc_api_key: ""
+
+# Use API key for Prisma Cloud (optional)
+# prisma_api_url: ""
+
