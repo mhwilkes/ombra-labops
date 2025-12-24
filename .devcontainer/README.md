@@ -47,8 +47,6 @@ This devcontainer works with both:
 - **Helm** - Kubernetes package manager
 - **kubectx/kubens** - Fast context/namespace switching
 - **stern** - Multi-pod log tailing
-- **kubectl-neat** - Clean Kubernetes manifests
-- **kubectl-tree** - Visualize resource hierarchies
 - **k9s** - Terminal UI for Kubernetes
 
 ### GitOps Tools
@@ -109,7 +107,7 @@ This devcontainer works with both:
 
 See [ALIASES.md](ALIASES.md) for complete documentation. Common aliases:
 
-**Kubernetes**: `k`, `kg`, `kd`, `ka`, `kl`, `klogs` (stern), `kneat`, `ktree`
+**Kubernetes**: `k`, `kg`, `kd`, `ka`, `kl`, `klogs` (stern)
 **Terraform**: `tf`, `tfa`, `tfp`, `tfv`, `tff`, `tflint`, `checkov`
 **GitOps**: `argo`, `argo-sync`, `argo-status`
 **Git**: `gs`, `ga`, `gc`, `gp`, `gl`, `gd`
@@ -230,3 +228,6 @@ For issues or questions:
 2. Review the post-create script output
 3. Check VS Code/Cursor Dev Container logs
 4. Open an issue in the repository
+
+
+

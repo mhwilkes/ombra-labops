@@ -16,8 +16,6 @@ This document serves as the primary entry point for AI agents working with this 
 | **helm** | Kubernetes package manager | `helm`, `h` | [TOOLS.md](.devcontainer/TOOLS.md#helm) |
 | **kubectx/kubens** | Context/namespace switching | `kubectx`, `kubens` | [TOOLS.md](.devcontainer/TOOLS.md#kubectx--kubens) |
 | **stern** | Multi-pod log tailing | `stern`, `klogs` | [TOOLS.md](.devcontainer/TOOLS.md#stern) |
-| **kubectl-neat** | Clean K8s manifests | `kubectl-neat`, `kneat` | [TOOLS.md](.devcontainer/TOOLS.md#kubectl-neat) |
-| **kubectl-tree** | Resource hierarchy | `kubectl-tree`, `ktree` | [TOOLS.md](.devcontainer/TOOLS.md#kubectl-tree) |
 | **argocd** | GitOps CLI | `argocd`, `argo` | [TOOLS.md](.devcontainer/TOOLS.md#argocd-cli) |
 | **infisical** | Secrets management | `infisical` | [TOOLS.md](.devcontainer/TOOLS.md#infisical-cli) |
 | **yamllint** | YAML linter | `yamllint` | [TOOLS.md](.devcontainer/TOOLS.md#yamllint) |
@@ -98,9 +96,6 @@ k get deployments
 
 # View logs (multi-pod)
 stern <pod-pattern>
-
-# Clean manifest
-kubectl get deployment <name> -o yaml | kubectl-neat
 ```
 
 ### GitOps Operations
@@ -162,14 +157,11 @@ kubectx <cluster-name>
 # 2. Switch to namespace
 kubens <namespace>
 
-# 3. View resource tree
-kubectl-tree <resource-type> <resource-name>
-
-# 4. Tail logs from multiple pods
+# 3. Tail logs from multiple pods
 stern <pod-pattern>
 
-# 5. Clean manifest for inspection
-kubectl get <resource> -o yaml | kubectl-neat
+# 4. Get resource details
+kubectl get <resource> -o yaml
 ```
 
 ### Workflow: GitOps Deployment

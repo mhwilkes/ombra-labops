@@ -68,8 +68,6 @@ kns <namespace>
 | `kctx-switch` | `kubectx` | Switch Kubernetes context |
 | `kns-switch` | `kubens` | Switch Kubernetes namespace |
 | `klogs` | `stern` | Multi-pod log tailing |
-| `kneat` | `kubectl-neat` | Clean Kubernetes manifests |
-| `ktree` | `kubectl-tree` | Visualize resource hierarchies |
 
 **Usage Examples**:
 
@@ -82,12 +80,6 @@ kns-switch <namespace>
 
 # Tail logs from multiple pods
 klogs <pod-pattern>
-
-# Clean manifest
-kubectl get deployment <name> -o yaml | kneat
-
-# View resource tree
-ktree deployment <deployment-name>
 ```
 
 ---

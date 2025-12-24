@@ -14,8 +14,6 @@ This document provides comprehensive documentation for all tools installed in th
   - [helm](#helm)
   - [kubectx / kubens](#kubectx--kubens)
   - [stern](#stern)
-  - [kubectl-neat](#kubectl-neat)
-  - [kubectl-tree](#kubectl-tree)
   - [k9s](#k9s)
 - [GitOps Tools](#gitops-tools)
   - [ArgoCD CLI](#argocd-cli)
@@ -286,56 +284,6 @@ stern <pod-pattern> --all-namespaces
 **Aliases**: `klogs`
 
 **AI Agent Notes**: Much better than `kubectl logs` for debugging multi-pod deployments. Use patterns like `app-*` to match multiple pods.
-
----
-
-### kubectl-neat
-
-**Purpose**: Remove clutter from Kubernetes manifests (removes default values, status, etc.) for cleaner diffs.
-
-**Installation**: Installed from GitHub releases in `post-create.sh`.
-
-**Usage Examples**:
-
-```bash
-# Clean manifest from stdin
-kubectl get deployment <name> -o yaml | kubectl-neat
-
-# Clean and save to file
-kubectl get deployment <name> -o yaml | kubectl-neat > clean.yaml
-
-# Clean from file
-kubectl-neat < manifest.yaml
-```
-
-**Aliases**: `kneat`
-
-**AI Agent Notes**: Useful for creating clean manifests for version control. Removes default values and status fields.
-
----
-
-### kubectl-tree
-
-**Purpose**: Visualize Kubernetes resource hierarchies and dependencies.
-
-**Installation**: Installed from GitHub releases in `post-create.sh`.
-
-**Usage Examples**:
-
-```bash
-# Show resource tree
-kubectl-tree deployment <deployment-name>
-
-# Show tree in namespace
-kubectl-tree deployment <deployment-name> -n <namespace>
-
-# Show all resources
-kubectl-tree all
-```
-
-**Aliases**: `ktree`
-
-**AI Agent Notes**: Excellent for understanding resource relationships and debugging dependency issues.
 
 ---
 

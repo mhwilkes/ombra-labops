@@ -1,160 +1,192 @@
 {
-	"name": "Ombra LabOps - IaC Development",
-	"image": "mcr.microsoft.com/devcontainers/base:debian",
-
-	// Features to install
-	"features": {
-		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-			"version": "latest",
-			"helm": "latest"
-		},
-		"ghcr.io/devcontainers/features/terraform:1": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers/features/git:1": {
-			"version": "latest",
-			"ppa": true
-		}
-	},
-
-	// VS Code / Cursor customizations
-	"customizations": {
-		"vscode": {
-			"settings": {
-				// Editor settings
-				"editor.formatOnSave": true,
-				"editor.tabSize": 2,
-				"editor.insertSpaces": true,
-				"editor.trimAutoWhitespace": true,
-				"editor.rulers": [120],
-				"files.eol": "\n",
-				"files.insertFinalNewline": true,
-				"files.trimTrailingWhitespace": true,
-
-				// YAML settings
-				"yaml.schemas": {
-					"kubernetes": [
-						"**/cluster-infrastructure/**/*.yaml",
-						"**/gitops/**/*.yaml",
-						"**/*k8s*.yaml",
-						"**/*kubernetes*.yaml"
-					],
-					"https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "docker-compose*.yml"
-				},
-				"yaml.format.enable": true,
-				"yaml.format.singleQuote": false,
-				"yaml.format.bracketSpacing": true,
-				"yaml.validate": true,
-				"yaml.hover": true,
-				"yaml.completion": true,
-
-				// Kubernetes settings
-				"kubernetes.explorer.customResources": true,
-				"kubernetes.validateOnSave": true,
-
-				// Terraform settings
-				"[terraform]": {
-					"editor.defaultFormatter": "hashicorp.terraform",
-					"editor.formatOnSave": true
-				},
-				"[terraform-vars]": {
-					"editor.defaultFormatter": "hashicorp.terraform"
-				},
-				"terraform.format.enable": true,
-				"terraform.languageServer.enable": true,
-
-				// Shell/Bash settings
-				"[shellscript]": {
-					"editor.defaultFormatter": "timonwong.shellcheck",
-					"editor.formatOnSave": true
-				},
-				"shellcheck.enable": true,
-				"shellcheck.run": "onSave",
-				"shellcheck.customArgs": ["--external-sources"],
-				"shellcheck.executablePath": "/usr/bin/shellcheck",
-
-				// JSON settings
-				"[json]": {
-					"editor.defaultFormatter": "vscode.json-language-features",
-					"editor.formatOnSave": true
-				},
-				"[jsonc]": {
-					"editor.defaultFormatter": "vscode.json-language-features",
-					"editor.formatOnSave": true
-				},
-
-				// Terminal settings
-				"terminal.integrated.defaultProfile.linux": "bash",
-				"terminal.integrated.profiles.linux": {
-					"bash": {
-						"path": "/bin/bash",
-						"args": ["-l"]
-					}
-				},
-
-				// File associations
-				"files.associations": {
-					"*.yaml": "yaml",
-					"*.yml": "yaml",
-					"talosconfig*": "yaml",
-					"clusterctl-config*.yaml": "yaml",
-					"renovate.json": "jsonc",
-					"*.tf": "terraform",
-					"*.tfvars": "terraform-vars",
-					"*.hcl": "terraform"
-				},
-
-				// Git settings
-				"git.autofetch": true,
-				"git.confirmSync": false,
-				"git.enableSmartCommit": true
-			},
-
-			"extensions": [
-				"redhat.vscode-yaml",
-				"ms-kubernetes-tools.vscode-kubernetes-tools",
-				"ms-azuretools.vscode-docker",
-				"hashicorp.terraform",
-				"eamodio.gitlens",
-				"editorconfig.editorconfig",
-				"timonwong.shellcheck",
-				"mohsen1.prettify-json",
-				"redhat.vscode-xml",
-				"bridgecrew.checkov",
-				"redhat.vscode-ansible",
-				"usernamehw.errorlens",
-				"aaron-bond.better-comments",
-				"gruntfuggly.todo-tree"
-			]
-		}
-	},
-
-	// Post-create command to install additional tools
-	"postCreateCommand": "bash .devcontainer/post-create.sh",
-
-	// Container user settings
-	"remoteUser": "vscode",
-	"remoteEnv": {
-		"SHELL": "/bin/bash"
-	},
-
-	// Mount points
-	"mounts": [
-		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
-		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.cluster-api,target=/home/vscode/.cluster-api,type=bind,consistency=cached"
-	],
-
-	// Container capabilities
-	"containerEnv": {
-		"DEBIAN_FRONTEND": "noninteractive"
-	},
-
-	// Run arguments
-	"runArgs": [
-		"--init"
-	],
-
-	// Workspace folder
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+  "name": "Ombra LabOps - IaC Development",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  // Features to install (official + community features)
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "configureZshAsDefaultShell": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "uid": "1000",
+      "gid": "1000"
+    },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest",
+      "helm": "latest"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3",
+      "installTools": true
+    },
+    "ghcr.io/devcontainers-extra/features/ansible:2": {},
+    "ghcr.io/devcontainers-extra/features/checkov:1": {},
+    "ghcr.io/devcontainers-extra/features/yamllint:2": {},
+    "ghcr.io/devcontainers-extra/features/shellcheck:1": {},
+    "ghcr.io/devcontainers-extra/features/lefthook-asdf:1": {},
+    "ghcr.io/devcontainers-extra/features/fzf:1": {},
+    "ghcr.io/devcontainers-extra/features/ripgrep:1": {},
+    "ghcr.io/devcontainers-extra/features/fd:1": {},
+    "ghcr.io/devcontainers-extra/features/argo-cd:1": {},
+    "ghcr.io/devcontainers-extra/features/kubectx-kubens:1": {},
+    "ghcr.io/jsburckhardt/devcontainer-features/bat:1": {},
+    "ghcr.io/devcontainers-extra/features/homebrew-package:1": {
+      "package": [
+        "clusterctl",
+        "k9s",
+        "terragrunt",
+        "tflint",
+        "talosctl",
+        "stern",
+        "infisical"
+      ]
+    }
+  },
+  // VS Code / Cursor customizations
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Editor settings
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.trimAutoWhitespace": true,
+        "editor.rulers": [
+          120
+        ],
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        // YAML settings
+        "yaml.schemas": {
+          "kubernetes": [
+            "**/cluster-infrastructure/**/*.yaml",
+            "**/gitops/**/*.yaml",
+            "**/*k8s*.yaml",
+            "**/*kubernetes*.yaml"
+          ],
+          "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "docker-compose*.yml"
+        },
+        "yaml.format.enable": true,
+        "yaml.format.singleQuote": false,
+        "yaml.format.bracketSpacing": true,
+        "yaml.validate": true,
+        "yaml.hover": true,
+        "yaml.completion": true,
+        // Kubernetes settings
+        "kubernetes.explorer.customResources": true,
+        "kubernetes.validateOnSave": true,
+        // Terraform settings
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform",
+          "editor.formatOnSave": true
+        },
+        "[terraform-vars]": {
+          "editor.defaultFormatter": "hashicorp.terraform"
+        },
+        "terraform.format.enable": true,
+        "terraform.languageServer.enable": true,
+        // Shell/Bash settings
+        "[shellscript]": {
+          "editor.defaultFormatter": "timonwong.shellcheck",
+          "editor.formatOnSave": true
+        },
+        "shellcheck.enable": true,
+        "shellcheck.run": "onSave",
+        "shellcheck.customArgs": [
+          "--external-sources"
+        ],
+        "shellcheck.executablePath": "/usr/bin/shellcheck",
+        // JSON settings
+        "[json]": {
+          "editor.defaultFormatter": "vscode.json-language-features",
+          "editor.formatOnSave": true
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "vscode.json-language-features",
+          "editor.formatOnSave": true
+        },
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh",
+            "args": [
+              "-l"
+            ]
+          },
+          "bash": {
+            "path": "/bin/bash",
+            "args": [
+              "-l"
+            ]
+          }
+        },
+        // File associations
+        "files.associations": {
+          "*.yaml": "yaml",
+          "*.yml": "yaml",
+          "talosconfig*": "yaml",
+          "clusterctl-config*.yaml": "yaml",
+          "renovate.json": "jsonc",
+          "*.tf": "terraform",
+          "*.tfvars": "terraform-vars",
+          "*.hcl": "terraform"
+        },
+        // Git settings
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableSmartCommit": true
+      },
+      "extensions": [
+        "redhat.vscode-yaml",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform",
+        "eamodio.gitlens",
+        "editorconfig.editorconfig",
+        "timonwong.shellcheck",
+        "mohsen1.prettify-json",
+        "redhat.vscode-xml",
+        "bridgecrew.checkov",
+        "redhat.vscode-ansible",
+        "usernamehw.errorlens",
+        "aaron-bond.better-comments",
+        "gruntfuggly.todo-tree"
+      ]
+    }
+  },
+  // Post-create command for custom configurations (aliases, lefthook init, etc.)
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  // Container user settings
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "SHELL": "/usr/bin/zsh"
+  },
+  // Mount points
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cluster-api,target=/home/vscode/.cluster-api,type=bind,consistency=cached"
+  ],
+  // Container capabilities
+  "containerEnv": {
+    "DEBIAN_FRONTEND": "noninteractive"
+  },
+  // Run arguments
+  "runArgs": [
+    "--init"
+  ],
+  // Workspace folder
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
 }
-
