@@ -386,9 +386,6 @@ kubectl kustomize <directory>
 
 # Apply kustomization
 kubectl apply -k <directory>
-
-# Build and view
-kubectl kustomize <directory> | kubectl-neat
 ```
 
 **AI Agent Notes**: Used extensively in GitOps configurations. Access via `kubectl kustomize` command.

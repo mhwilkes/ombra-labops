@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Post-create script for project-specific configurations
 # Most tools are installed via devcontainer features
+# shellcheck disable=SC2310  # command_exists is intentionally used in if conditions
 set -euo pipefail
 
 # Colors for output
-readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
@@ -27,6 +27,15 @@ log_warning() {
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
+
+# Install tools via Homebrew (Homebrew installed via feature)
+if command_exists brew; then
+    log_info "Installing tools via Homebrew..."
+    brew install clusterctl k9s terragrunt tflint stern infisical || log_warning "Some Homebrew packages may have failed to install"
+    log_success "Homebrew package installation complete"
+else
+    log_warning "Homebrew not found, skipping package installation"
+fi
 
 # Initialize lefthook if .lefthook.yml exists (lefthook installed via feature)
 if [[ -f ".lefthook.yml" ]] || [[ -f "${PWD}/.lefthook.yml" ]]; then
@@ -168,6 +177,9 @@ fi
 
 log_success "Shell completions configured"
 
+# Ensure PATH is set correctly before summary
+export PATH="${HOME}/.local/bin:${PATH}:/usr/local/bin:/usr/bin:/bin"
+
 # Display summary
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -190,6 +202,7 @@ tools=(
     "kubens"
     "stern"
     "argocd"
+    "infisical"
     "shellcheck"
     "yamllint"
     "git"
@@ -197,9 +210,32 @@ tools=(
 )
 
 for tool in "${tools[@]}"; do
-    if command_exists "$tool"; then
-        local version
-        version=$($tool --version 2>&1 | head -n 1 | cut -d' ' -f2- | cut -d',' -f1 | head -c 40)
+    version=""
+    if command_exists "${tool}"; then
+        # Try to get version, handle different output formats
+        # Special cases for tools with non-standard version commands
+        case "${tool}" in
+            kubectl)
+                version_output=$(${tool} version --client 2>&1 || echo "")
+                ;;
+            helm)
+                version_output=$(${tool} version --short 2>&1 || echo "")
+                ;;
+            *)
+                # Try --version first, then version, then other common patterns
+                version_output=$(${tool} --version 2>&1 || ${tool} version 2>&1 || echo "")
+                ;;
+        esac
+
+        if [[ -n "${version_output}" ]]; then
+            # Extract version from first line, try to find version pattern
+            # Use a subshell to isolate failures
+            version=$( (echo "${version_output}" | head -n 1 | grep -oE '[vV]?[0-9]+\.[0-9]+(\.[0-9]+)?(-[a-zA-Z0-9]+)?' || true) | head -n 1)
+        fi
+        # If still empty, just show "installed"
+        if [[ -z "${version}" ]]; then
+            version="installed"
+        fi
         printf "${GREEN}✓${NC} %-20s %s\n" "${tool}:" "${version}"
     else
         printf "${YELLOW}✗${NC} %-20s %s\n" "${tool}:" "NOT INSTALLED"

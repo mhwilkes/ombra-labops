@@ -457,13 +457,7 @@ This document provides step-by-step workflows for common Infrastructure as Code 
    klogs <pod-pattern>  # e.g., "app-*"
    ```
 
-4. **View resource tree**:
-
-   ```bash
-   ktree deployment <deployment-name>
-   ```
-
-5. **Describe resources**:
+4. **Describe resources**:
 
    ```bash
    kd deployment <deployment-name>

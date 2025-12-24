@@ -40,18 +40,9 @@
     "ghcr.io/devcontainers-extra/features/fd:1": {},
     "ghcr.io/devcontainers-extra/features/argo-cd:1": {},
     "ghcr.io/devcontainers-extra/features/kubectx-kubens:1": {},
+    "ghcr.io/devcontainers-extra/features/talosctl:1": {},
     "ghcr.io/jsburckhardt/devcontainer-features/bat:1": {},
-    "ghcr.io/devcontainers-extra/features/homebrew-package:1": {
-      "package": [
-        "clusterctl",
-        "k9s",
-        "terragrunt",
-        "tflint",
-        "talosctl",
-        "stern",
-        "infisical"
-      ]
-    }
+    "ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {}
   },
   // VS Code / Cursor customizations
   "customizations": {
@@ -107,7 +98,7 @@
         "shellcheck.customArgs": [
           "--external-sources"
         ],
-        "shellcheck.executablePath": "/usr/bin/shellcheck",
+        "shellcheck.executablePath": "/usr/local/bin/shellcheck",
         // JSON settings
         "[json]": {
           "editor.defaultFormatter": "vscode.json-language-features",
