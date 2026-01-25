@@ -16,7 +16,7 @@ spec:
           manager:
             image:
               repository: infisical/kubernetes-operator
-              tag: v0.10.19
+              tag: v0.10.21
             resources:
               limits:
                 cpu: 500m
